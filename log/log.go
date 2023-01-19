@@ -58,6 +58,10 @@ func init() {
 	SetHighlighting(runtime.GOOS != "windows")
 }
 
+func SetOutput(w io.Writer) {
+	_log._log.SetOutput(w)
+}
+
 func GlobalLogger() *log.Logger {
 	return _log._log
 }
