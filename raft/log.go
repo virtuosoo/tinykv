@@ -14,17 +14,21 @@
 
 package raft
 
-import pb "github.com/pingcap-incubator/tinykv/proto/pkg/eraftpb"
+import (
+	"github.com/pingcap-incubator/tinykv/log"
+	pb "github.com/pingcap-incubator/tinykv/proto/pkg/eraftpb"
+)
 
 // RaftLog manage the log entries, its struct look like:
 //
-//  snapshot/first.....applied....committed....stabled.....last
-//  --------|------------------------------------------------|
-//                            log entries
+//	snapshot/first.....applied....committed....stabled.....last
+//	--------|------------------------------------------------|
+//	                          log entries
 //
 // for simplify the RaftLog implement should manage all log entries
 // that not truncated
 type RaftLog struct {
+	Id uint64
 	// storage contains all stable entries since the last snapshot.
 	storage Storage
 
@@ -56,12 +60,27 @@ type RaftLog struct {
 // to the state that it just commits and applies the latest snapshot.
 func newLog(storage Storage) *RaftLog {
 	// Your Code Here (2A).
-	return nil
+	return &RaftLog{}
 }
 
 // We need to compact the log entries in some point of time like
 // storage compact stabled log entries prevent the log entries
 // grow unlimitedly in memory
+
+func (l *RaftLog) isUpToDate(index, term uint64) bool {
+	//todo增加逻辑实现
+	return true
+}
+
+func (l *RaftLog) commitTo(tocommit uint64) {
+	if l.committed < tocommit {
+		if l.LastIndex() < tocommit {
+			log.Panicf("%x commit out of range lastIndex(%d), tocommit(%d)", l.Id, l.LastIndex(), tocommit)
+		}
+		l.committed = tocommit
+	}
+}
+
 func (l *RaftLog) maybeCompact() {
 	// Your Code Here (2C).
 }
@@ -90,6 +109,11 @@ func (l *RaftLog) nextEnts() (ents []pb.Entry) {
 func (l *RaftLog) LastIndex() uint64 {
 	// Your Code Here (2A).
 	return 0
+}
+
+func (l *RaftLog) LastTerm() uint64 {
+	term, _ := l.Term(l.LastIndex())
+	return term
 }
 
 // Term return the term of the entry in the given index
