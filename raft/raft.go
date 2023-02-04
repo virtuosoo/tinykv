@@ -18,6 +18,7 @@ import (
 	"errors"
 	"math/rand"
 	"os"
+	"sort"
 	"sync"
 	"time"
 
@@ -135,9 +136,9 @@ func (c *Config) validate() error {
 
 // Progress represents a follower’s progress in the view of the leader. Leader maintains
 // progresses of all followers, and sends entries to the follower based on its progress.
-type Progress struct {
-	Match, Next uint64
-}
+// type Progress struct {
+// 	Match, Next uint64
+// }
 
 type Raft struct {
 	id uint64
@@ -197,6 +198,7 @@ func newRaft(c *Config) *Raft {
 	if err := c.validate(); err != nil {
 		panic(err.Error())
 	}
+	setLogOutput()
 	// Your Code Here (2A).
 	raftlog := newLog(c.Storage)
 	r := &Raft{
@@ -212,7 +214,6 @@ func newRaft(c *Config) *Raft {
 		r.Prs[id] = &Progress{}
 	}
 	r.becomeFollower(r.Term, None)
-	setLogOutput()
 	return r
 }
 
@@ -230,7 +231,25 @@ func (r *Raft) send(m pb.Message) {
 // current commit index to the given peer. Returns true if a message was sent.
 func (r *Raft) sendAppend(to uint64) bool {
 	// Your Code Here (2A).
-	return false
+	pr := r.Prs[to]
+	m := pb.Message{}
+	m.To = to
+
+	term, errt := r.RaftLog.Term(pr.Next - 1)
+	log.Infof("%x send to %x logterm %d, next %d", r.id, to, term, pr.Next)
+	ents, erre := r.RaftLog.getEntries(pr.Next)
+
+	if errt != nil || erre != nil {
+		//发送快照?
+	} else {
+		m.MsgType = pb.MessageType_MsgAppend
+		m.LogTerm = term
+		m.Index = pr.Next - 1
+		m.Entries = ents
+		m.Commit = r.RaftLog.committed
+	}
+	r.send(m)
+	return true
 }
 
 // sendHeartbeat sends a heartbeat RPC to the given peer.
@@ -373,7 +392,14 @@ func (r *Raft) becomeLeader() {
 	r.State = StateLeader
 
 	//todo 发送一条空日志，这里先发一个心跳
-	r.Step(pb.Message{MsgType: pb.MessageType_MsgBeat, From: r.id})
+	//r.Step(pb.Message{MsgType: pb.MessageType_MsgBeat, From: r.id})
+	for id := range r.Prs {
+		r.Prs[id].Next = r.RaftLog.LastIndex() + 1
+		if id == r.id {
+			r.Prs[id].Match = r.RaftLog.LastIndex()
+		}
+	}
+	r.appendEntries(&pb.Entry{Data: nil})
 	log.Infof("%x became Leader at term %v", r.id, r.Term)
 }
 
@@ -445,6 +471,10 @@ func (r *Raft) stepFollower(m pb.Message) {
 		r.electionElapsed = 0
 		r.Lead = m.From
 		r.handleHeartbeat(m)
+	case pb.MessageType_MsgAppend:
+		r.electionElapsed = 0
+		r.Lead = m.From
+		r.handleAppendEntries(m)
 	}
 }
 
@@ -465,12 +495,29 @@ func (r *Raft) stepLeader(m pb.Message) {
 	switch m.MsgType {
 	case pb.MessageType_MsgBeat:
 		r.bcastHeartBeat()
-	case pb.MessageType_MsgHeartbeat:
-		log.Panicf("%x leader received a heartbeat from another leader %x at Term %d", r.id, m.From, r.Term)
+	case pb.MessageType_MsgHeartbeat, pb.MessageType_MsgAppend:
+		log.Panicf("%x leader received a heartbeat or append from another leader %x at Term %d", r.id, m.From, r.Term)
 	case pb.MessageType_MsgHeartbeatResponse:
-		//暂时什么都不做
+		//todo 暂时什么都不做
 	case pb.MessageType_MsgPropose:
-		r.bcastHeartBeat()
+		if len(m.Entries) == 0 {
+			log.Infof("%x propose a empty entries, heartbeat instead", r.id)
+			r.bcastHeartBeat()
+			return
+		}
+		r.appendEntries(m.Entries...)
+		r.bcastAppend()
+	case pb.MessageType_MsgAppendResponse:
+		r.handleAppendResponse(m)
+	}
+}
+
+func (r *Raft) bcastAppend() {
+	for id, _ := range r.Prs {
+		if id == r.id {
+			continue
+		}
+		r.sendAppend(id)
 	}
 }
 
@@ -506,14 +553,75 @@ func (r *Raft) handleRequestVoteResp(m pb.Message) {
 	granted := r.poll(m.From, !m.Reject)
 	if granted == r.quorum() {
 		r.becomeLeader()
+		r.bcastAppend() //在becomeleader外面发,因为测试里面会帮我们发
 	} else if len(r.votes)-granted == r.quorum() {
 		r.becomeFollower(r.Term, None)
+	}
+}
+
+// leader调用
+func (r *Raft) appendEntries(es ...*pb.Entry) {
+	li := r.RaftLog.LastIndex()
+	for i, _ := range es {
+		es[i].Term = r.Term
+		es[i].Index = li + 1 + uint64(i)
+	}
+	r.RaftLog.append(es...)
+	//todo更新自己的matchindex，并尝试commit
+	r.Prs[r.id].maybeUpdate(r.RaftLog.LastIndex())
+	r.maybeCommit()
+}
+
+func (r *Raft) maybeCommit() bool {
+	ms := make(uint64Slice, 0, len(r.Prs))
+
+	for id, _ := range r.Prs {
+		ms = append(ms, r.Prs[id].Match)
+	}
+
+	sort.Sort(sort.Reverse(ms))
+	N := ms[r.quorum()-1]
+	return r.RaftLog.maybeCommit(N, r.Term)
+}
+
+func (r *Raft) handleAppendResponse(m pb.Message) {
+	if m.Reject {
+		log.Infof("%x receive a reject AppResp from %x", r.id, m.From)
+		if r.Prs[m.From].maybeDecreTo(m.Index, m.RejectHint) {
+			r.sendAppend(m.From)
+		}
+	} else {
+		if r.Prs[m.From].maybeUpdate(m.Index) {
+			if r.maybeCommit() {
+				r.sendAppend(m.From) //为了让follower的commit更新
+			}
+		}
 	}
 }
 
 // handleAppendEntries handle AppendEntries RPC request
 func (r *Raft) handleAppendEntries(m pb.Message) {
 	// Your Code Here (2A).
+	if m.Index < r.RaftLog.committed {
+		r.send(pb.Message{MsgType: pb.MessageType_MsgAppendResponse,
+			To: m.From, Index: r.RaftLog.committed})
+		return
+	}
+	log.Infof("%x -> %x index %d", m.From, r.id, m.Index)
+	if lastnewi, ok := r.RaftLog.maybeAppend(m.Index, m.LogTerm, m.Commit, m.Entries...); ok {
+		r.send(pb.Message{MsgType: pb.MessageType_MsgAppendResponse,
+			To: m.From, Index: lastnewi})
+	} else {
+		myTerm, err := r.RaftLog.Term(m.Index)
+
+		if err != nil {
+			log.Panic(err)
+		}
+		log.Debugf("%x [index %d, logTerm %d] reject append from %x [index %d, logTerm %d]", r.id,
+			m.Index, myTerm, m.From, m.Index, m.LogTerm)
+		r.send(pb.Message{MsgType: pb.MessageType_MsgAppendResponse,
+			To: m.From, Index: m.Index, Reject: true, RejectHint: r.RaftLog.LastIndex()})
+	}
 }
 
 // handleHeartbeat handle Heartbeat RPC request
