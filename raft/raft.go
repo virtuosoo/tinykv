@@ -201,6 +201,10 @@ func newRaft(c *Config) *Raft {
 	setLogOutput()
 	// Your Code Here (2A).
 	raftlog := newLog(c.Storage)
+	raftlog.id = c.ID
+	if c.Applied > 0 {
+		raftlog.applyTo(c.Applied)
+	}
 	r := &Raft{
 		id:               c.ID,
 		Lead:             None,
@@ -210,13 +214,58 @@ func newRaft(c *Config) *Raft {
 		electionTimeout:  c.ElectionTick,
 	}
 
-	for _, id := range c.peers {
-		r.Prs[id] = &Progress{}
+	hs, cs, err := c.Storage.InitialState()
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	peers := c.peers
+	if len(cs.Nodes) > 0 {
+		if len(peers) > 0 {
+			// TODO(bdarnell): the peers argument is always nil except in
+			// tests; the argument should be removed and these tests should be
+			// updated to specify their nodes through a snapshot.
+			panic("cannot specify both newRaft(peers) and ConfState.Nodes)")
+		}
+		peers = cs.Nodes
+	}
+
+	if !IsEmptyHardState(hs) {
+		r.loadHardState(hs)
+	}
+
+	for _, id := range peers {
+		r.Prs[id] = &Progress{Next: 1, Match: 0}
 	}
 	r.becomeFollower(r.Term, None)
+
 	return r
 }
 
+func (r *Raft) softState() *SoftState {
+	return &SoftState{
+		Lead:      r.Lead,
+		RaftState: r.State,
+	}
+}
+
+func (r *Raft) hardState() pb.HardState {
+	return pb.HardState{
+		Term:   r.Term,
+		Vote:   r.Vote,
+		Commit: r.RaftLog.committed,
+	}
+}
+
+func (r *Raft) loadHardState(s pb.HardState) {
+	if s.Commit < r.RaftLog.committed || s.Commit > r.RaftLog.LastIndex() {
+		log.Panicf("%x state.Commit %d out of range [%d %d]", r.id, s.Commit, r.RaftLog.committed, r.RaftLog.LastIndex())
+	}
+	r.RaftLog.committed = s.Commit
+	r.Term = s.Term
+	r.Vote = s.Vote
+}
 func (r *Raft) quorum() int {
 	return len(r.Prs)/2 + 1
 }
@@ -436,8 +485,8 @@ func (r *Raft) Step(m pb.Message) error {
 			//其他消息直接忽略，并返回
 			log.Infof("%x [term: %d] ignored a %s message with lower term from %x [term: %d]",
 				r.id, r.Term, m.MsgType, m.From, m.Term)
-			return nil
 		}
+		return nil
 	}
 
 	//先一起处理所有类型成员都要响应的msg,即发起选举和投票
@@ -496,9 +545,11 @@ func (r *Raft) stepLeader(m pb.Message) {
 	case pb.MessageType_MsgBeat:
 		r.bcastHeartBeat()
 	case pb.MessageType_MsgHeartbeat, pb.MessageType_MsgAppend:
-		log.Panicf("%x leader received a heartbeat or append from another leader %x at Term %d", r.id, m.From, r.Term)
+		log.Panicf("%x leader received a heartbeat or append from another leader %x at Term %d", r.id, m.From, m.Term)
 	case pb.MessageType_MsgHeartbeatResponse:
-		//todo 暂时什么都不做
+		if r.Prs[m.From].Match < r.RaftLog.LastIndex() {
+			r.sendAppend(m.From)
+		}
 	case pb.MessageType_MsgPropose:
 		if len(m.Entries) == 0 {
 			log.Infof("%x propose a empty entries, heartbeat instead", r.id)
@@ -581,6 +632,7 @@ func (r *Raft) maybeCommit() bool {
 
 	sort.Sort(sort.Reverse(ms))
 	N := ms[r.quorum()-1]
+	log.Infof("%x ready to commit %d", r.id, N)
 	return r.RaftLog.maybeCommit(N, r.Term)
 }
 
@@ -591,9 +643,11 @@ func (r *Raft) handleAppendResponse(m pb.Message) {
 			r.sendAppend(m.From)
 		}
 	} else {
+		log.Infof("%x received a Append sucess, Index(%d)", r.id, m.Index)
 		if r.Prs[m.From].maybeUpdate(m.Index) {
 			if r.maybeCommit() {
-				r.sendAppend(m.From) //为了让follower的commit更新
+				log.Infof("%x leader commit %d", r.id, r.RaftLog.committed)
+				r.bcastAppend() //为了让follower的commit更新
 			}
 		}
 	}

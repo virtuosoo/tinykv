@@ -46,8 +46,6 @@ type RaftLog struct {
 	// Everytime handling `Ready`, the unstabled logs will be included.
 	stabled uint64
 
-	offset uint64 //还没有进入stable storage的第一个entry的Index
-
 	// all entries that have not yet compact.
 	entries []pb.Entry
 
@@ -56,18 +54,41 @@ type RaftLog struct {
 	pendingSnapshot *pb.Snapshot
 
 	// Your Data Here (2A).
+
+	dummyIndex uint64
+	dummyTerm  uint64
 }
 
 // newLog returns log using the given storage. It recovers the log
 // to the state that it just commits and applies the latest snapshot.
 func newLog(storage Storage) *RaftLog {
 	// Your Code Here (2A).
-	sli, _ := storage.LastIndex()
-	return &RaftLog{
-		storage: storage,
-		entries: []pb.Entry{},
-		offset:  sli + 1,
+
+	fi, err := storage.FirstIndex()
+	if err != nil {
+		log.Panic(err)
 	}
+
+	li, err := storage.LastIndex()
+	if err != nil {
+		log.Panic(err)
+	}
+
+	sents, err := storage.Entries(fi, li+1)
+	if err != nil {
+		log.Panic(err)
+	}
+	log := &RaftLog{
+		storage:    storage,
+		entries:    sents,
+		dummyIndex: 0,
+		dummyTerm:  0,
+	}
+
+	if len(sents) != 0 {
+		log.stabled = sents[0].Index + uint64(len(sents)) - 1
+	}
+	return log
 }
 
 // We need to compact the log entries in some point of time like
@@ -94,17 +115,19 @@ func (l *RaftLog) truncateAndAppend(pents ...*pb.Entry) {
 	}
 	after := ents[0].Index
 	switch {
-	case after > l.offset+uint64(len(l.entries)):
-		log.Panicf("%x append index not ordered, after(%d), expect at most(%d)", l.id, after, l.offset+uint64(len(l.entries)))
-
-	case after == l.offset+uint64(len(l.entries)): //刚好紧挨着，直接append
+	case after > l.LastIndex()+1:
+		log.Panicf("%x append index not ordered, after(%d), expect at most(%d)", l.id, after, l.LastIndex()+1)
+	case after <= l.dummyIndex:
+		log.Panicf("%x append index(%d) less than dummyIndex(%d)", l.id, after, l.dummyIndex)
+	case after == l.LastIndex()+1: //刚好紧挨着，直接append
+		log.Infof("%x append at after %d", l.id, after)
 		l.entries = append(l.entries, ents...)
-	case after <= l.offset: //用当前的数据替换未持久化的数据，并且已经持久化了的数据也可能要被截断
-		log.Infof("%x replace unstable entries at index (%d)", l.id, after)
-		l.offset = after
-		l.entries = ents
 	default:
-		l.entries = append(l.entries[0:after-l.offset], ents...)
+		remained, err := l.slice(l.FirstIndex(), after)
+		if err != nil {
+			log.Panic(err)
+		}
+		l.entries = append(remained, ents...)
 	}
 }
 
@@ -126,6 +149,7 @@ func (l *RaftLog) getEntries(i uint64) ([]*pb.Entry, error) {
 	return pents, err
 }
 
+// raftlog[lo, hi)
 func (l *RaftLog) slice(lo, hi uint64) ([]pb.Entry, error) {
 	err := l.checkSliceOutOfBounds(lo, hi)
 	if err != nil {
@@ -135,26 +159,10 @@ func (l *RaftLog) slice(lo, hi uint64) ([]pb.Entry, error) {
 	if lo == hi {
 		return nil, nil
 	}
+
 	var ents []pb.Entry
-	if lo < l.offset { //前一半在storage中
-		storageEnts, err := l.storage.Entries(lo, min(hi, l.offset))
-		if err == ErrCompacted {
-			return nil, err
-		} else if err != nil {
-			log.Panic(err)
-		}
-
-		ents = storageEnts
-	}
-
-	if hi > l.offset {
-		unstableEnts := l.unstableSlice(max(lo, l.offset), hi)
-		if len(ents) != 0 {
-			ents = append(ents, unstableEnts...)
-		} else {
-			ents = unstableEnts
-		}
-	}
+	offset := l.dummyIndex + 1
+	ents = l.entries[lo-offset : hi-offset]
 	return ents, nil
 }
 
@@ -174,27 +182,9 @@ func (l *RaftLog) checkSliceOutOfBounds(lo, hi uint64) error {
 	return nil
 }
 
-func (l *RaftLog) unstableSlice(lo, hi uint64) []pb.Entry {
-	l.checkUnstableSliceOutOfBounds(lo, hi)
-	return l.entries[lo-l.offset : hi-l.offset]
-}
-
-// 出问题直接panic
-func (l *RaftLog) checkUnstableSliceOutOfBounds(lo, hi uint64) {
-	if lo > hi {
-		log.Panicf("%x invalid unstable slice %d > %d", l.id, lo, hi)
-	}
-
-	upper := l.offset + uint64(len(l.entries))
-	if lo < l.offset || hi > upper {
-		log.Panicf("%x invalid unstable slice[%d, %d], bounds[%d, %d]", l.id,
-			lo, hi, l.offset, upper)
-	}
-}
-
 func (l *RaftLog) isUpToDate(index, term uint64) bool {
-	//todo增加逻辑实现
-	return true
+	//增加逻辑实现
+	return term > l.LastTerm() || (term == l.LastTerm() && index >= l.LastIndex())
 }
 
 func (l *RaftLog) commitTo(tocommit uint64) {
@@ -204,6 +194,29 @@ func (l *RaftLog) commitTo(tocommit uint64) {
 		}
 		l.committed = tocommit
 	}
+}
+
+func (l *RaftLog) applyTo(i uint64) {
+	if i == 0 {
+		return
+	}
+
+	if i < l.applied || i > l.committed {
+		log.Panicf("%x apply %d out of range [%d %d]", l.id, i, l.applied+1, l.committed)
+	}
+	log.Infof("%x apply to %d", l.id, i)
+	l.applied = i
+}
+
+func (l *RaftLog) stableTo(i uint64) {
+	if i == 0 {
+		return
+	}
+
+	if i < l.stabled {
+		log.Panicf("%x stable to i %d less than already stabled(%d)", l.id, i, l.stabled)
+	}
+	l.stabled = i
 }
 
 func (l *RaftLog) maybeCompact() {
@@ -216,37 +229,23 @@ func (l *RaftLog) maybeCompact() {
 func (l *RaftLog) allEntries() []pb.Entry {
 	// Your Code Here (2A).
 	ents := []pb.Entry{}
-	sfi, err := l.storage.FirstIndex()
-
-	if err == nil {
-		sli, err := l.storage.LastIndex()
-		if err != nil {
-			log.Panic(err)
-		}
-		sents, err := l.storage.Entries(sfi, min(sli+1, l.offset)) //storage中的可能不对了，所以需要截断
-		if err != nil {
-			log.Panic(err)
-		}
-		ents = append(ents, sents...)
-	} else if err == ErrUnavailable {
-		//pass
-	} else {
-		log.Panic(err)
-	}
-
 	ents = append(ents, l.entries...)
+	if len(ents) == 0 {
+		return []pb.Entry{}
+	}
 	return ents
 }
 
 // unstableEntries return all the unstable entries
 func (l *RaftLog) unstableEntries() []pb.Entry {
 	// Your Code Here (2A).
-	ents := []pb.Entry{}
-	ents = append(ents, l.entries...)
-
-	//需要更新entries吗？
-	l.entries = []pb.Entry{}
-	l.offset = l.offset + uint64(len(ents))
+	ents, err := l.slice(l.stabled+1, l.LastIndex()+1)
+	if err != nil {
+		log.Panic(err)
+	}
+	if len(ents) == 0 {
+		return []pb.Entry{}
+	}
 	return ents
 }
 
@@ -257,11 +256,17 @@ func (l *RaftLog) nextEnts() (ents []pb.Entry) {
 	if err != nil {
 		log.Panic(err)
 	}
+
+	if len(ents) == 0 {
+		return []pb.Entry{}
+	}
+
 	return ents
 }
 
 func (l *RaftLog) maybeCommit(n, term uint64) bool {
 	t, err := l.Term(n)
+	log.Infof("%x ready to commit %d, term(%d), curTerm(%d)", l.id, n, t, term)
 	if err != nil && err != ErrCompacted {
 		log.Panic(err)
 	}
@@ -270,17 +275,6 @@ func (l *RaftLog) maybeCommit(n, term uint64) bool {
 		return true
 	}
 	return false
-}
-
-func (l *RaftLog) maybeLastIndex() (uint64, bool) {
-	if le := len(l.entries); le != 0 {
-		return l.offset + uint64(le) - 1, true
-	}
-
-	if l.pendingSnapshot != nil {
-		return l.pendingSnapshot.Metadata.Index, true
-	}
-	return 0, false
 }
 
 func (l *RaftLog) maybeAppend(index, logTerm, commited uint64, ents ...*pb.Entry) (lastnewi uint64, ok bool) {
@@ -294,6 +288,7 @@ func (l *RaftLog) maybeAppend(index, logTerm, commited uint64, ents ...*pb.Entry
 			log.Panicf("entry %d conflict with committed entry [committed(%d)]", ci, l.committed)
 		default:
 			offset := index + 1
+			l.stabled = min(l.stabled, ci-1)
 			l.append(ents[ci-offset:]...)
 		}
 		l.commitTo(min(lastnewi, commited))
@@ -324,24 +319,11 @@ func (l *RaftLog) matchTerm(index, term uint64) bool {
 func (l *RaftLog) LastIndex() uint64 {
 	// Your Code Here (2A).
 
-	if i, ok := l.maybeLastIndex(); ok {
-		return i
-	}
-
-	i, err := l.storage.LastIndex()
-	if err != nil {
-		log.Panicf(err.Error())
-	}
-
-	return i
+	return l.dummyIndex + uint64(len(l.entries))
 }
 
 func (l *RaftLog) FirstIndex() uint64 {
-	i, err := l.storage.FirstIndex()
-	if err != nil {
-		log.Infof("%x get err(%v) when get firstIndex", l.id, err)
-	}
-	return i
+	return l.dummyIndex + 1
 }
 
 func (l *RaftLog) LastTerm() uint64 {
@@ -352,29 +334,21 @@ func (l *RaftLog) LastTerm() uint64 {
 	return term
 }
 
-func (l *RaftLog) maybeTerm(i uint64) (uint64, bool) {
-	if i >= l.offset && i < l.offset+uint64(len(l.entries)) {
-		return l.entries[i-l.offset].Term, true
-	}
-	return 0, false
-}
-
 // Term return the term of the entry in the given index
 func (l *RaftLog) Term(i uint64) (uint64, error) {
 	// Your Code Here (2A).
-	dummyIndex := l.FirstIndex() - 1
-	if i < dummyIndex || i > l.LastIndex() {
-		log.Infof("%x index out of range i(%d), dummy(%d), last(%d)", l.id, i, dummyIndex, l.LastIndex())
+	if i < l.dummyIndex || i > l.LastIndex() {
+		log.Infof("%x index out of range i(%d), dummy(%d), last(%d)", l.id, i, l.dummyIndex, l.LastIndex())
 		return 0, nil
 	}
-	if t, ok := l.maybeTerm(i); ok {
-		return t, nil
+
+	if i > l.dummyIndex && i <= l.LastIndex() {
+		return l.entries[i-l.dummyIndex-1].Term, nil
 	}
 
-	t, err := l.storage.Term(i)
-	if err == nil {
-		return t, nil
+	if i == l.dummyIndex {
+		return l.dummyTerm, nil
 	}
 
-	return 0, err
+	return l.storage.Term(i)
 }
