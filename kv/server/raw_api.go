@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 
-	"github.com/Connor1996/badger"
 	"github.com/pingcap-incubator/tinykv/kv/storage"
 	"github.com/pingcap-incubator/tinykv/proto/pkg/kvrpcpb"
 )
@@ -24,11 +23,10 @@ func (server *Server) RawGet(_ context.Context, req *kvrpcpb.RawGetRequest) (*kv
 	res := kvrpcpb.RawGetResponse{
 		Value: value,
 	}
-	if err != nil {
-		res.Error = err.Error()
-		if err == badger.ErrKeyNotFound {
-			res.NotFound = true
-		}
+
+	//key not found
+	if err == nil && value == nil {
+		res.NotFound = true
 	}
 	return &res, nil
 }
@@ -36,7 +34,7 @@ func (server *Server) RawGet(_ context.Context, req *kvrpcpb.RawGetRequest) (*kv
 // RawPut puts the target data into storage and returns the corresponding response
 func (server *Server) RawPut(_ context.Context, req *kvrpcpb.RawPutRequest) (*kvrpcpb.RawPutResponse, error) {
 	// Your Code Here (1).
-	server.storage.Write(nil, []storage.Modify{
+	err := server.storage.Write(nil, []storage.Modify{
 		{
 			Data: storage.Put{
 				Key:   req.Key,
@@ -45,14 +43,14 @@ func (server *Server) RawPut(_ context.Context, req *kvrpcpb.RawPutRequest) (*kv
 			},
 		},
 	})
-	return &kvrpcpb.RawPutResponse{}, nil
+	return &kvrpcpb.RawPutResponse{}, err
 }
 
 // RawDelete delete the target data from storage and returns the corresponding response
 func (server *Server) RawDelete(_ context.Context, req *kvrpcpb.RawDeleteRequest) (*kvrpcpb.RawDeleteResponse, error) {
 	// Your Code Here (1).
 	// Hint: Consider using Storage.Modify to store data to be deleted
-	server.storage.Write(nil, []storage.Modify{
+	err := server.storage.Write(nil, []storage.Modify{
 		{
 			Data: storage.Delete{
 				Key: req.Key,
@@ -60,7 +58,7 @@ func (server *Server) RawDelete(_ context.Context, req *kvrpcpb.RawDeleteRequest
 			},
 		},
 	})
-	return &kvrpcpb.RawDeleteResponse{}, nil
+	return &kvrpcpb.RawDeleteResponse{}, err
 }
 
 // RawScan scan the data starting from the start key up to limit. and return the corresponding result
