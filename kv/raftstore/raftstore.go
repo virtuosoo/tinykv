@@ -2,6 +2,7 @@ package raftstore
 
 import (
 	"bytes"
+	"os"
 	"sync"
 	"time"
 
@@ -21,6 +22,17 @@ import (
 	"github.com/pingcap-incubator/tinykv/scheduler/pkg/btree"
 	"github.com/pingcap/errors"
 )
+
+func init() {
+	log.SetLevel(log.LOG_LEVEL_ALL)
+	os.Remove(`raftstore.log`)
+	logFile, err := os.OpenFile(`raftstore.log`, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		panic(err)
+	}
+	// 设置存储位置
+	log.SetOutput(logFile)
+}
 
 var _ btree.Item = &regionItem{}
 
@@ -104,8 +116,8 @@ type Transport interface {
 	Send(msg *rspb.RaftMessage) error
 }
 
-/// loadPeers loads peers in this store. It scans the db engine, loads all regions and their peers from it
-/// WARN: This store should not be used before initialized.
+// / loadPeers loads peers in this store. It scans the db engine, loads all regions and their peers from it
+// / WARN: This store should not be used before initialized.
 func (bs *Raftstore) loadPeers() ([]*peer, error) {
 	// Scan region meta to get saved regions.
 	startKey := meta.RegionMetaMinKey

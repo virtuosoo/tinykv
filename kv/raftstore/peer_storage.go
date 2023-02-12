@@ -308,6 +308,22 @@ func ClearMeta(engines *engine_util.Engines, kvWB, raftWB *engine_util.WriteBatc
 // never be committed
 func (ps *PeerStorage) Append(entries []eraftpb.Entry, raftWB *engine_util.WriteBatch) error {
 	// Your Code Here (2B).
+	for _, entry := range entries {
+		raftWB.SetMeta(meta.RaftLogKey(ps.region.Id, entry.Index), &entry)
+	}
+	eli, elt := entries[len(entries)-1].Index, entries[len(entries)-1].Term
+	psli, _ := ps.LastIndex()
+	if eli < psli { //后面的entry不需要了，需要删除
+		toDelete, err := ps.Entries(eli+1, psli+1)
+		if err != nil {
+			log.Panic(err)
+		}
+		for _, entry := range toDelete {
+			raftWB.DeleteMeta(meta.RaftLogKey(ps.region.Id, entry.Index))
+		}
+	}
+	ps.raftState.LastIndex = eli
+	ps.raftState.LastTerm = elt
 	return nil
 }
 
@@ -331,6 +347,21 @@ func (ps *PeerStorage) ApplySnapshot(snapshot *eraftpb.Snapshot, kvWB *engine_ut
 func (ps *PeerStorage) SaveReadyState(ready *raft.Ready) (*ApplySnapResult, error) {
 	// Hint: you may call `Append()` and `ApplySnapshot()` in this function
 	// Your Code Here (2B/2C).
+	if !raft.IsEmptySnap(&ready.Snapshot) {
+		//applysnapshot
+	}
+
+	raftWB := new(engine_util.WriteBatch)
+	if len(ready.Entries) > 0 {
+		ps.Append(ready.Entries, raftWB)
+	}
+
+	if !raft.IsEmptyHardState(ready.HardState) {
+		ps.raftState.HardState = &ready.HardState
+	}
+
+	raftWB.SetMeta(meta.RaftStateKey(ps.region.Id), ps.raftState)
+	raftWB.MustWriteToDB(ps.Engines.Raft)
 	return nil, nil
 }
 

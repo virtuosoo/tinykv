@@ -152,7 +152,7 @@ func (c *NodeSimulator) RunStore(cfg *config.Config, engine *engine_util.Engines
 	snapManager := snap.NewSnapManager(cfg.DBPath + "/snap")
 	node := raftstore.NewNode(raftSystem, cfg, c.schedulerClient)
 
-	err := node.Start(ctx, engine, c.trans, snapManager)
+	err := node.Start(ctx, engine, c.trans, snapManager) //这里会开启raft worker
 	if err != nil {
 		return err
 	}

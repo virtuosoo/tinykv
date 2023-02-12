@@ -27,6 +27,11 @@ import (
 	pb "github.com/pingcap-incubator/tinykv/proto/pkg/eraftpb"
 )
 
+func init() {
+	setLogOutput()
+	log.SetLevel(log.LOG_LEVEL_DEBUG)
+}
+
 type lockedRand struct {
 	mu   sync.Mutex
 	rand *rand.Rand
@@ -198,11 +203,11 @@ func newRaft(c *Config) *Raft {
 	if err := c.validate(); err != nil {
 		panic(err.Error())
 	}
-	setLogOutput()
 	// Your Code Here (2A).
 	raftlog := newLog(c.Storage)
 	raftlog.id = c.ID
 	if c.Applied > 0 {
+		raftlog.commitTo(max(c.Applied, raftlog.committed))
 		raftlog.applyTo(c.Applied)
 	}
 	r := &Raft{

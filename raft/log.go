@@ -56,7 +56,6 @@ type RaftLog struct {
 	// Your Data Here (2A).
 
 	dummyIndex uint64
-	dummyTerm  uint64
 }
 
 // newLog returns log using the given storage. It recovers the log
@@ -81,12 +80,8 @@ func newLog(storage Storage) *RaftLog {
 	log := &RaftLog{
 		storage:    storage,
 		entries:    sents,
-		dummyIndex: 0,
-		dummyTerm:  0,
-	}
-
-	if len(sents) != 0 {
-		log.stabled = sents[0].Index + uint64(len(sents)) - 1
+		dummyIndex: fi - 1,
+		stabled:    fi - 1,
 	}
 	return log
 }
@@ -170,9 +165,9 @@ func (l *RaftLog) checkSliceOutOfBounds(lo, hi uint64) error {
 	if lo > hi {
 		log.Panicf("%x invalid slice %d > %d", l.id, lo, hi)
 	}
-
 	fi := l.FirstIndex()
 	if lo < fi {
+		log.Debugf("lo %d hi %d, fi %d", lo, hi, fi)
 		return ErrCompacted
 	}
 
@@ -192,6 +187,7 @@ func (l *RaftLog) commitTo(tocommit uint64) {
 		if l.LastIndex() < tocommit {
 			log.Panicf("%x commit out of range lastIndex(%d), tocommit(%d)", l.id, l.LastIndex(), tocommit)
 		}
+		log.Infof("%x commit to %d", l.id, tocommit)
 		l.committed = tocommit
 	}
 }
@@ -344,10 +340,6 @@ func (l *RaftLog) Term(i uint64) (uint64, error) {
 
 	if i > l.dummyIndex && i <= l.LastIndex() {
 		return l.entries[i-l.dummyIndex-1].Term, nil
-	}
-
-	if i == l.dummyIndex {
-		return l.dummyTerm, nil
 	}
 
 	return l.storage.Term(i)
