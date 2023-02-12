@@ -206,10 +206,7 @@ func newRaft(c *Config) *Raft {
 	// Your Code Here (2A).
 	raftlog := newLog(c.Storage)
 	raftlog.id = c.ID
-	if c.Applied > 0 {
-		raftlog.commitTo(max(c.Applied, raftlog.committed))
-		raftlog.applyTo(c.Applied)
-	}
+
 	r := &Raft{
 		id:               c.ID,
 		Lead:             None,
@@ -238,6 +235,10 @@ func newRaft(c *Config) *Raft {
 
 	if !IsEmptyHardState(hs) {
 		r.loadHardState(hs)
+	}
+
+	if c.Applied > 0 {
+		raftlog.applyTo(c.Applied)
 	}
 
 	for _, id := range peers {
