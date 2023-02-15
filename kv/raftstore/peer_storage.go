@@ -339,7 +339,52 @@ func (ps *PeerStorage) ApplySnapshot(snapshot *eraftpb.Snapshot, kvWB *engine_ut
 	// and send RegionTaskApply task to region worker through ps.regionSched, also remember call ps.clearMeta
 	// and ps.clearExtraData to delete stale data
 	// Your Code Here (2C).
-	return nil, nil
+	prevRegion := ps.region
+	newRegion := snapData.Region
+	regionId := newRegion.GetId()
+
+	ps.clearMeta(kvWB, raftWB)
+	ps.clearExtraData(newRegion)
+
+	ps.SetRegion(newRegion)
+	sindex, sterm := snapshot.Metadata.Index, snapshot.Metadata.Term
+
+	ps.raftState.LastIndex = sindex
+	ps.raftState.LastTerm = sterm
+	raftWB.SetMeta(meta.RaftStateKey(regionId), ps.raftState)
+
+	ps.applyState.TruncatedState.Index = sindex
+	ps.applyState.TruncatedState.Term = sterm
+	ps.applyState.AppliedIndex = sindex
+	kvWB.SetMeta(meta.ApplyStateKey(regionId), ps.applyState)
+
+	regionLocalState := new(rspb.RegionLocalState)
+	regionLocalState.Region = newRegion
+	kvWB.SetMeta(meta.RegionStateKey(regionId), regionLocalState)
+
+	ch := make(chan bool, 1)
+	ps.snapState.StateType = snap.SnapState_Applying
+	ps.regionSched <- &runner.RegionTaskApply{
+		RegionId: regionId,
+		Notifier: ch,
+		SnapMeta: snapshot.Metadata,
+		StartKey: prevRegion.StartKey,
+		EndKey:   prevRegion.EndKey,
+	}
+
+	raftWB.MustWriteToDB(ps.Engines.Raft)
+	kvWB.MustWriteToDB(ps.Engines.Kv)
+	log.Infof("%v applying snapshot WB wrote to db", ps.Tag)
+	ok := <-ch
+	if !ok {
+		log.Panicf("failed to apply snapshot")
+	}
+	ps.snapState.StateType = snap.SnapState_Relax
+	log.Infof("%v finished to apply snapshot", ps.Tag)
+	return &ApplySnapResult{
+		PrevRegion: prevRegion,
+		Region:     newRegion,
+	}, nil
 }
 
 // Save memory states to disk.
@@ -347,13 +392,21 @@ func (ps *PeerStorage) ApplySnapshot(snapshot *eraftpb.Snapshot, kvWB *engine_ut
 func (ps *PeerStorage) SaveReadyState(ready *raft.Ready) (*ApplySnapResult, error) {
 	// Hint: you may call `Append()` and `ApplySnapshot()` in this function
 	// Your Code Here (2B/2C).
-	if !raft.IsEmptySnap(&ready.Snapshot) {
-		//applysnapshot
-	}
 
 	raftWB := new(engine_util.WriteBatch)
+	kvWB := new(engine_util.WriteBatch)
 	if len(ready.Entries) > 0 {
 		ps.Append(ready.Entries, raftWB)
+	}
+
+	if !raft.IsEmptySnap(&ready.Snapshot) {
+		//applysnapshot
+		if ps.applyState.AppliedIndex > ready.Snapshot.Metadata.Index {
+			log.Warnf("%v get stale snapshot in ready, lastapplied %d snapshot index %d", ps.Tag, ps.applyState.AppliedIndex, ready.Snapshot.Metadata.Index)
+		} else {
+			ps.ApplySnapshot(&ready.Snapshot, kvWB, raftWB)
+		}
+
 	}
 
 	if !raft.IsEmptyHardState(ready.HardState) {

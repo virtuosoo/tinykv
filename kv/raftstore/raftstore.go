@@ -298,18 +298,27 @@ func (bs *Raftstore) startWorkers(peers []*peer) {
 
 func (bs *Raftstore) shutDown() {
 	close(bs.closeCh)
+	storeID := bs.ctx.store.Id
+	log.Infof("store %d waiting raftworker and storeworker", storeID)
 	bs.wg.Wait()
+	log.Infof("store %d  raftworker and storeworker finidshed", storeID)
 	bs.tickDriver.stop()
 	if bs.workers == nil {
 		return
 	}
 	workers := bs.workers
 	bs.workers = nil
+	log.Infof("store %d waiting splitCheckWorker", storeID)
 	workers.splitCheckWorker.Stop()
+	log.Infof("store %d waiting regionWorker", storeID)
 	workers.regionWorker.Stop()
+	log.Infof("store %d waiting raftLogGCWorker", storeID)
 	workers.raftLogGCWorker.Stop()
+	log.Infof("store %d waiting schedulerWorker", storeID)
 	workers.schedulerWorker.Stop()
+	log.Infof("store %d waiting wokers.wg", storeID)
 	workers.wg.Wait()
+	log.Infof("store %d all workers finished", storeID)
 }
 
 func CreateRaftstore(cfg *config.Config) (*RaftstoreRouter, *Raftstore) {

@@ -24,6 +24,7 @@ import (
 
 	"github.com/pingcap-incubator/tinykv/log"
 
+	"github.com/pingcap-incubator/tinykv/proto/pkg/eraftpb"
 	pb "github.com/pingcap-incubator/tinykv/proto/pkg/eraftpb"
 )
 
@@ -295,7 +296,19 @@ func (r *Raft) sendAppend(to uint64) bool {
 	ents, erre := r.RaftLog.getEntries(pr.Next)
 
 	if errt != nil || erre != nil {
-		//发送快照?
+		// 发送快照信息
+		snapShot, err := r.RaftLog.storage.Snapshot()
+		if err != nil { //没准备好
+			if err == ErrSnapshotTemporarilyUnavailable {
+				log.Infof("%x called storage.Snapshot(), but Temporarily Unavailable", r.id)
+				return true
+			}
+			log.Panic(err)
+		}
+		m.MsgType = pb.MessageType_MsgSnapshot
+		m.Snapshot = &snapShot
+		sindex, sterm := m.Snapshot.Metadata.Index, m.Snapshot.Metadata.Term
+		log.Infof("%x send to(%x) snapshot[index %d, term %d]", r.id, to, sindex, sterm)
 	} else {
 		m.MsgType = pb.MessageType_MsgAppend
 		m.LogTerm = term
@@ -530,6 +543,10 @@ func (r *Raft) stepFollower(m pb.Message) {
 		r.electionElapsed = 0
 		r.Lead = m.From
 		r.handleAppendEntries(m)
+	case pb.MessageType_MsgSnapshot:
+		r.electionElapsed = 0
+		r.Lead = m.From
+		r.handleSnapshot(m)
 	}
 }
 
@@ -543,6 +560,9 @@ func (r *Raft) stepCandidate(m pb.Message) {
 	case pb.MessageType_MsgAppend:
 		r.becomeFollower(r.Term, m.From)
 		r.handleAppendEntries(m)
+	case pb.MessageType_MsgSnapshot:
+		r.becomeFollower(r.Term, m.From)
+		r.handleSnapshot(m)
 	}
 }
 
@@ -694,6 +714,34 @@ func (r *Raft) handleHeartbeat(m pb.Message) {
 // handleSnapshot handle Snapshot RPC request
 func (r *Raft) handleSnapshot(m pb.Message) {
 	// Your Code Here (2C).
+	sindex, sterm := m.Snapshot.Metadata.Index, m.Snapshot.Metadata.Term
+	if r.restore(m.Snapshot) {
+		log.Infof("%x accept snapshot[index %d term %d] from %x", r.id, sindex, sterm, m.From)
+		r.send(pb.Message{MsgType: pb.MessageType_MsgAppendResponse, To: m.From, Index: m.Snapshot.Metadata.Index})
+	} else {
+		log.Infof("%x reject snapshot[index %d term %d] from %x", r.id, sindex, sterm, m.From)
+		r.send(pb.Message{MsgType: pb.MessageType_MsgAppendResponse, To: m.From, Index: r.RaftLog.committed})
+	}
+}
+
+func (r *Raft) restore(s *eraftpb.Snapshot) bool {
+	if s.Metadata.Index < r.RaftLog.committed {
+		return false
+	}
+
+	if r.RaftLog.matchTerm(s.Metadata.Index, s.Metadata.Term) {
+		r.RaftLog.commitTo(s.Metadata.Index)
+		return false
+	}
+
+	r.RaftLog.restore(s)
+
+	r.Prs = make(map[uint64]*Progress) //更新节点信息
+	for _, id := range s.Metadata.ConfState.Nodes {
+		r.Prs[id] = &Progress{}
+	}
+	log.Infof("%x restored snapshot[index %d term %d]", r.id, s.Metadata.Index, s.Metadata.Term)
+	return true
 }
 
 // addNode add a new node to raft group

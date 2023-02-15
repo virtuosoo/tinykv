@@ -68,6 +68,8 @@ func (r *regionTaskHandler) Handle(t worker.Task) {
 	case *RegionTaskDestroy:
 		task := t.(*RegionTaskDestroy)
 		r.ctx.cleanUpRange(task.RegionId, task.StartKey, task.EndKey)
+	default:
+		log.Errorf("unsupported worker.Task: %+v", t)
 	}
 }
 
@@ -162,7 +164,7 @@ func getAppliedIdxTermForSnapshot(raft *badger.DB, kv *badger.Txn, regionId uint
 }
 
 func doSnapshot(engines *engine_util.Engines, mgr *snap.SnapManager, regionId uint64) (*eraftpb.Snapshot, error) {
-	log.Debugf("begin to generate a snapshot. [regionId: %d]", regionId)
+	log.Infof("begin to generate a snapshot. [regionId: %d]", regionId)
 
 	txn := engines.Kv.NewTransaction(false)
 
@@ -205,5 +207,6 @@ func doSnapshot(engines *engine_util.Engines, mgr *snap.SnapManager, regionId ui
 		return nil, err
 	}
 	snapshot.Data, err = snapshotData.Marshal()
+	log.Infof("succeed to generate a snapshot. [regionId: %d]", regionId)
 	return snapshot, err
 }

@@ -68,7 +68,16 @@ func (d *peerMsgHandler) applyEntries(entries []eraftpb.Entry) {
 }
 
 func (d *peerMsgHandler) applySingleEntry(entry *eraftpb.Entry) {
+	lastApplied := d.peerStorage.applyState.AppliedIndex
+	if lastApplied+1 != entry.Index {
+		log.Panicf("%v apply out of order last %d now %d", d.Tag, lastApplied, entry.Index)
+	}
+
 	if entry.Data == nil {
+		raftWB := new(engine_util.WriteBatch)
+		d.peerStorage.applyState.AppliedIndex = entry.Index
+		raftWB.SetMeta(meta.ApplyStateKey(d.regionId), d.peerStorage.applyState)
+		raftWB.MustWriteToDB(d.peerStorage.Engines.Kv)
 		return
 	}
 
@@ -77,6 +86,7 @@ func (d *peerMsgHandler) applySingleEntry(entry *eraftpb.Entry) {
 		log.Panic(err)
 	}
 	// normal requests
+
 	if len(msg.Requests) > 0 {
 		txn := d.peerStorage.Engines.Kv.NewTransaction(true)
 		resp := newCmdResp()
@@ -124,11 +134,25 @@ func (d *peerMsgHandler) applySingleEntry(entry *eraftpb.Entry) {
 		if err != nil {
 			log.Panic(err)
 		}
-		txn.Set(meta.ApplyStateKey(d.Region().GetId()), val)
+		txn.Set(meta.ApplyStateKey(d.regionId), val)
 		txn.Commit()
 
 		if d.IsLeader() {
 			d.handleProposals(entry, resp)
+		}
+	}
+
+	//admin request
+	if msg.AdminRequest != nil {
+		switch msg.AdminRequest.CmdType {
+		case raft_cmdpb.AdminCmdType_CompactLog:
+			raftWB := new(engine_util.WriteBatch)
+			d.peerStorage.applyState.TruncatedState.Index = msg.AdminRequest.CompactLog.CompactIndex
+			d.peerStorage.applyState.TruncatedState.Term = msg.AdminRequest.CompactLog.CompactTerm
+			d.peerStorage.applyState.AppliedIndex = entry.Index
+			raftWB.SetMeta(meta.ApplyStateKey(d.regionId), d.peerStorage.applyState)
+			raftWB.MustWriteToDB(d.peerStorage.Engines.Kv)
+			d.ScheduleCompactLog(msg.AdminRequest.CompactLog.CompactIndex)
 		}
 	}
 }
@@ -187,6 +211,7 @@ func (d *peerMsgHandler) HandleMsg(msg message.Msg) {
 	case message.MsgTypeGcSnap:
 		gcSnap := msg.Data.(*message.MsgGCSnap)
 		d.onGCSnap(gcSnap.Snaps)
+		log.Infof("%s finished to handle message.MsgTypeGcSnap", d.Tag)
 	case message.MsgTypeStart:
 		d.startTicker()
 	}
@@ -568,7 +593,7 @@ func (d *peerMsgHandler) onRaftGCLogTick() {
 	// Create a compact log request and notify directly.
 	regionID := d.regionId
 	request := newCompactLogRequest(regionID, d.Meta, compactIdx, term)
-	d.proposeRaftCommand(request, nil)
+	d.proposeRaftCommand(request, nil) // 只有leader会主动截断日志
 }
 
 func (d *peerMsgHandler) onSplitRegionCheckTick() {
@@ -663,7 +688,7 @@ func (d *peerMsgHandler) onGCSnap(snaps []snap.SnapKeyWithSending) {
 				continue
 			}
 			if key.Term < compactedTerm || key.Index < compactedIdx {
-				log.Infof("%s snap file %s has been compacted, delete", d.Tag, key)
+				log.Infof("%s in store %d snap file %s has been compacted, delete", d.Tag, d.ctx.store.Id, key)
 				d.ctx.snapMgr.DeleteSnapshot(key, snap, false)
 			} else if fi, err1 := snap.Meta(); err1 == nil {
 				modTime := fi.ModTime()

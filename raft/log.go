@@ -16,6 +16,7 @@ package raft
 
 import (
 	"github.com/pingcap-incubator/tinykv/log"
+	"github.com/pingcap-incubator/tinykv/proto/pkg/eraftpb"
 	pb "github.com/pingcap-incubator/tinykv/proto/pkg/eraftpb"
 )
 
@@ -56,6 +57,7 @@ type RaftLog struct {
 	// Your Data Here (2A).
 
 	dummyIndex uint64
+	dummyTerm  uint64
 }
 
 // newLog returns log using the given storage. It recovers the log
@@ -77,11 +79,19 @@ func newLog(storage Storage) *RaftLog {
 	if err != nil {
 		log.Panic(err)
 	}
+
 	log := &RaftLog{
 		storage:    storage,
 		entries:    sents,
 		dummyIndex: fi - 1,
-		stabled:    fi - 1,
+		stabled:    li,
+		applied:    fi - 1, //前面是快照，一定apply了
+		committed:  fi - 1,
+	}
+
+	dterm, err := storage.Term(fi - 1)
+	if err != nil {
+		log.dummyTerm = dterm
 	}
 	return log
 }
@@ -215,6 +225,13 @@ func (l *RaftLog) stableTo(i uint64) {
 	l.stabled = i
 }
 
+func (l *RaftLog) stableSnapTo(i uint64) {
+	if l.pendingSnapshot != nil && l.pendingSnapshot.Metadata.Index == i {
+		l.pendingSnapshot = nil
+		l.applyTo(i)
+	}
+}
+
 func (l *RaftLog) maybeCompact() {
 	// Your Code Here (2C).
 }
@@ -248,7 +265,12 @@ func (l *RaftLog) unstableEntries() []pb.Entry {
 // nextEnts returns all the committed but not applied entries
 func (l *RaftLog) nextEnts() (ents []pb.Entry) {
 	// Your Code Here (2A).
-	ents, err := l.slice(l.applied+1, l.committed+1)
+	offset := l.applied + 1
+	if l.pendingSnapshot != nil {
+		offset = max(offset, l.pendingSnapshot.Metadata.Index+1)
+	}
+
+	ents, err := l.slice(offset, l.committed+1)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -342,5 +364,18 @@ func (l *RaftLog) Term(i uint64) (uint64, error) {
 		return l.entries[i-l.dummyIndex-1].Term, nil
 	}
 
+	if i == l.dummyIndex {
+		return l.dummyTerm, nil
+	}
+
 	return l.storage.Term(i)
+}
+
+func (l *RaftLog) restore(s *eraftpb.Snapshot) {
+	l.committed = s.Metadata.Index
+	l.stabled = s.Metadata.Index
+	l.dummyIndex = s.Metadata.Index
+	l.dummyTerm = s.Metadata.Term
+	l.entries = nil
+	l.pendingSnapshot = s
 }

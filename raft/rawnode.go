@@ -173,6 +173,10 @@ func newReady(r *Raft, prevHardSt pb.HardState, prevSoftSt *SoftState) Ready {
 		rd.HardState = hardSt
 	}
 
+	if r.RaftLog.pendingSnapshot != nil {
+		rd.Snapshot = *r.RaftLog.pendingSnapshot
+	}
+
 	return rd
 }
 
@@ -216,6 +220,10 @@ func (rn *RawNode) Advance(rd Ready) {
 	if len(rd.Entries) > 0 {
 		prevLastUnstablei := rd.Entries[len(rd.Entries)-1].Index
 		rn.Raft.RaftLog.stableTo(prevLastUnstablei)
+	}
+
+	if !IsEmptySnap(&rd.Snapshot) {
+		rn.Raft.RaftLog.stableSnapTo(rd.Snapshot.Metadata.Index)
 	}
 }
 
