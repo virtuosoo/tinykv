@@ -1,0 +1,11 @@
+1.2B:
+    测试中shutdownserver时，会一直卡住
+    原因：处理proposals时有可能会进入死循环
+2.2C:
+    测试中，日志中出现peer_msg_handler.go:690: [info] [region 1] 4 snap file 1_19_991 has been compacted, delete
+    然后整个系统卡住
+    初步排查发现为在调用cluster.StopServer()时，某store一直等待raftworker或者storewoker，导致卡死
+    发现ApplySnapshot中，发送applysnapshot的任务后，结果没有从ch返回，导致一直阻塞。
+
+    原因：发送applysnapshot的任务的任务时类型出错，导致接收方不做任何处理，应该发送指针类型。
+    为什么有时还能通过测试？snapshot根本没有触发？
