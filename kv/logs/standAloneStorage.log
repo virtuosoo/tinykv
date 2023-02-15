@@ -1,0 +1,10 @@
+2023/02/16 00:11:03 standalone_storage.go:65: [debug] db path /tmp/badger
+2023/02/16 00:11:04 standalone_storage.go:65: [debug] db path /tmp/badger
+2023/02/16 00:11:05 standalone_storage.go:65: [debug] db path /tmp/badger
+2023/02/16 00:11:06 standalone_storage.go:65: [debug] db path /tmp/badger
+2023/02/16 00:11:06 standalone_storage.go:65: [debug] db path /tmp/badger
+2023/02/16 00:11:07 standalone_storage.go:65: [debug] db path /tmp/badger
+2023/02/16 00:11:08 standalone_storage.go:65: [debug] db path /tmp/badger
+2023/02/16 00:11:09 standalone_storage.go:65: [debug] db path /tmp/badger
+2023/02/16 00:11:10 standalone_storage.go:65: [debug] db path /tmp/badger
+2023/02/16 00:11:11 standalone_storage.go:65: [debug] db path /tmp/badger
