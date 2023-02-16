@@ -343,6 +343,18 @@ func (ps *PeerStorage) ApplySnapshot(snapshot *eraftpb.Snapshot, kvWB *engine_ut
 	newRegion := snapData.Region
 	regionId := newRegion.GetId()
 
+	//发送apply任务
+	ch := make(chan bool, 1)
+	ps.regionSched <- &runner.RegionTaskApply{
+		RegionId: regionId,
+		Notifier: ch,
+		SnapMeta: snapshot.Metadata,
+		StartKey: prevRegion.StartKey,
+		EndKey:   prevRegion.EndKey,
+	}
+	ps.snapState.StateType = snap.SnapState_Applying
+	log.Infof("%v applying snapshot WB wrote to db", ps.Tag)
+
 	ps.clearMeta(kvWB, raftWB)
 	ps.clearExtraData(newRegion)
 
@@ -362,19 +374,6 @@ func (ps *PeerStorage) ApplySnapshot(snapshot *eraftpb.Snapshot, kvWB *engine_ut
 	regionLocalState.Region = newRegion
 	kvWB.SetMeta(meta.RegionStateKey(regionId), regionLocalState)
 
-	ch := make(chan bool, 1)
-	ps.snapState.StateType = snap.SnapState_Applying
-	ps.regionSched <- &runner.RegionTaskApply{
-		RegionId: regionId,
-		Notifier: ch,
-		SnapMeta: snapshot.Metadata,
-		StartKey: prevRegion.StartKey,
-		EndKey:   prevRegion.EndKey,
-	}
-
-	raftWB.MustWriteToDB(ps.Engines.Raft)
-	kvWB.MustWriteToDB(ps.Engines.Kv)
-	log.Infof("%v applying snapshot WB wrote to db", ps.Tag)
 	ok := <-ch
 	if !ok {
 		log.Panicf("failed to apply snapshot")
@@ -415,6 +414,7 @@ func (ps *PeerStorage) SaveReadyState(ready *raft.Ready) (*ApplySnapResult, erro
 
 	raftWB.SetMeta(meta.RaftStateKey(ps.region.Id), ps.raftState)
 	raftWB.MustWriteToDB(ps.Engines.Raft)
+	kvWB.MustWriteToDB(ps.Engines.Kv)
 	return nil, nil
 }
 
