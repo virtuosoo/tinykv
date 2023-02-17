@@ -689,6 +689,8 @@ func (r *Raft) handleAppendEntries(m pb.Message) {
 	}
 	log.Infof("%x -> %x index %d", m.From, r.id, m.Index)
 	if lastnewi, ok := r.RaftLog.maybeAppend(m.Index, m.LogTerm, m.Commit, m.Entries...); ok {
+		log.Infof("%x accept append from %x [index %d, logTerm %d], lastnewi %d", r.id,
+			m.From, m.Index, m.LogTerm, lastnewi)
 		r.send(pb.Message{MsgType: pb.MessageType_MsgAppendResponse,
 			To: m.From, Index: lastnewi})
 	} else {
@@ -697,7 +699,7 @@ func (r *Raft) handleAppendEntries(m pb.Message) {
 		if err != nil {
 			log.Panic(err)
 		}
-		log.Debugf("%x [index %d, logTerm %d] reject append from %x [index %d, logTerm %d]", r.id,
+		log.Infof("%x [index %d, logTerm %d] reject append from %x [index %d, logTerm %d]", r.id,
 			m.Index, myTerm, m.From, m.Index, m.LogTerm)
 		r.send(pb.Message{MsgType: pb.MessageType_MsgAppendResponse,
 			To: m.From, Index: m.Index, Reject: true, RejectHint: r.RaftLog.LastIndex()})
