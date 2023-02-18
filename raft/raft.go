@@ -465,6 +465,8 @@ func (r *Raft) becomeLeader() {
 		r.Prs[id].Next = r.RaftLog.LastIndex() + 1
 		if id == r.id {
 			r.Prs[id].Match = r.RaftLog.LastIndex()
+		} else {
+			r.Prs[id].Match = 0 // 重要，需要重置matchIndex数组
 		}
 	}
 	r.appendEntries(&pb.Entry{Data: nil})
