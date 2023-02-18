@@ -699,8 +699,8 @@ func (r *Raft) handleAppendEntries(m pb.Message) {
 		if err != nil {
 			log.Panic(err)
 		}
-		log.Infof("%x [index %d, logTerm %d] reject append from %x [index %d, logTerm %d]", r.id,
-			m.Index, myTerm, m.From, m.Index, m.LogTerm)
+		log.Infof("%x [index %d, logTerm %d, lastIndex %d] reject append from %x [index %d, logTerm %d]", r.id,
+			m.Index, myTerm, r.RaftLog.LastIndex(), m.From, m.Index, m.LogTerm)
 		r.send(pb.Message{MsgType: pb.MessageType_MsgAppendResponse,
 			To: m.From, Index: m.Index, Reject: true, RejectHint: r.RaftLog.LastIndex()})
 	}

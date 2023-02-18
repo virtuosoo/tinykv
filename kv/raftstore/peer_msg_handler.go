@@ -74,10 +74,10 @@ func (d *peerMsgHandler) applySingleEntry(entry *eraftpb.Entry) {
 	}
 
 	if entry.Data == nil {
-		raftWB := new(engine_util.WriteBatch)
+		kvWB := new(engine_util.WriteBatch)
 		d.peerStorage.applyState.AppliedIndex = entry.Index
-		raftWB.SetMeta(meta.ApplyStateKey(d.regionId), d.peerStorage.applyState)
-		raftWB.MustWriteToDB(d.peerStorage.Engines.Kv)
+		kvWB.SetMeta(meta.ApplyStateKey(d.regionId), d.peerStorage.applyState)
+		kvWB.MustWriteToDB(d.peerStorage.Engines.Kv)
 		return
 	}
 
@@ -135,7 +135,10 @@ func (d *peerMsgHandler) applySingleEntry(entry *eraftpb.Entry) {
 			log.Panic(err)
 		}
 		txn.Set(meta.ApplyStateKey(d.regionId), val)
-		txn.Commit()
+		err = txn.Commit()
+		if err != nil {
+			log.Panic(err)
+		}
 
 		if d.IsLeader() {
 			d.handleProposals(entry, resp)
@@ -146,12 +149,12 @@ func (d *peerMsgHandler) applySingleEntry(entry *eraftpb.Entry) {
 	if msg.AdminRequest != nil {
 		switch msg.AdminRequest.CmdType {
 		case raft_cmdpb.AdminCmdType_CompactLog:
-			raftWB := new(engine_util.WriteBatch)
+			kvWB := new(engine_util.WriteBatch)
 			d.peerStorage.applyState.TruncatedState.Index = msg.AdminRequest.CompactLog.CompactIndex
 			d.peerStorage.applyState.TruncatedState.Term = msg.AdminRequest.CompactLog.CompactTerm
 			d.peerStorage.applyState.AppliedIndex = entry.Index
-			raftWB.SetMeta(meta.ApplyStateKey(d.regionId), d.peerStorage.applyState)
-			raftWB.MustWriteToDB(d.peerStorage.Engines.Kv)
+			kvWB.SetMeta(meta.ApplyStateKey(d.regionId), d.peerStorage.applyState)
+			kvWB.MustWriteToDB(d.peerStorage.Engines.Kv)
 			d.ScheduleCompactLog(msg.AdminRequest.CompactLog.CompactIndex)
 		}
 	}

@@ -222,6 +222,7 @@ func (l *RaftLog) stableTo(i uint64) {
 	if i < l.stabled {
 		log.Panicf("%x stable to i %d less than already stabled(%d)", l.id, i, l.stabled)
 	}
+	log.Infof("%x stabled to %d", l.id, i)
 	l.stabled = i
 }
 
