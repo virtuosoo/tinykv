@@ -38,6 +38,7 @@ func (t *ServerTransport) SendStore(storeID uint64, msg *raft_serverpb.RaftMessa
 		t.WriteData(storeID, addr, msg)
 		return
 	}
+	// 解析目的store的地址
 	if _, ok := t.resolving.Load(storeID); ok {
 		log.Debugf("store address is being resolved, msg dropped. storeID: %v, msg: %s", storeID, msg)
 		return
@@ -66,6 +67,7 @@ func (t *ServerTransport) Resolve(storeID uint64, msg *raft_serverpb.RaftMessage
 }
 
 func (t *ServerTransport) WriteData(storeID uint64, addr string, msg *raft_serverpb.RaftMessage) {
+	// 发送快照是单独的逻辑
 	if msg.GetMessage().GetSnapshot() != nil {
 		t.SendSnapshotSock(addr, msg)
 		return

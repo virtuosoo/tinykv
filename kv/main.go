@@ -32,6 +32,7 @@ func main() {
 	flag.Parse()
 	conf := config.NewDefaultConfig()
 	if *schedulerAddr != "" {
+		log.Infof("set conf.SchedulerAddr %v", *schedulerAddr)
 		conf.SchedulerAddr = *schedulerAddr
 	}
 	if *storeAddr != "" {

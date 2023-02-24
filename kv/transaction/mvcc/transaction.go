@@ -62,7 +62,7 @@ func (txn *MvccTxn) PutWrite(key []byte, ts uint64, write *Write) {
 		Value: write.ToBytes(),
 		Cf:    engine_util.CfWrite,
 	}
-
+	log.Infof("put write, key byte (%v), value byte(%v)", writeKey, put.Value)
 	txn.writes = append(txn.writes, storage.Modify{Data: put})
 }
 
@@ -105,6 +105,22 @@ func (txn *MvccTxn) DeleteLock(key []byte) {
 		Cf:  engine_util.CfLock,
 	}
 	txn.writes = append(txn.writes, storage.Modify{Data: delete})
+}
+
+func (txn *MvccTxn) GetLockedKeysByCurTxn() [][]byte {
+	keys := [][]byte{}
+	iter := txn.Reader.IterCF(engine_util.CfLock)
+	defer iter.Close()
+	for iter.Seek([]byte{0}); iter.Valid(); iter.Next() {
+		item := iter.Item()
+		key := item.Key()
+		value, _ := item.Value()
+		lock, _ := ParseLock(value)
+		if lock.Ts == txn.StartTS {
+			keys = append(keys, key)
+		}
+	}
+	return keys
 }
 
 // GetValue finds the value for key, valid at the start timestamp of this transaction.

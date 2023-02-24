@@ -83,6 +83,7 @@ func (c *RaftClient) getConn(addr string, regionID uint64) (*raftConn, error) {
 	}
 	c.Lock()
 	defer c.Unlock()
+	// 防止多线程下别的线程也创建了
 	if conn, ok := c.conns[addr]; ok {
 		newConn.Stop()
 		return conn, nil
