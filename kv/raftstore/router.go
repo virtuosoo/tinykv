@@ -26,7 +26,7 @@ type router struct {
 
 func newRouter(storeSender chan<- message.Msg) *router {
 	pm := &router{
-		peerSender:  make(chan message.Msg, 40960),
+		peerSender:  make(chan message.Msg, 40960), //有大缓存的channel
 		storeSender: storeSender,
 	}
 	return pm
@@ -87,7 +87,7 @@ func (r *RaftstoreRouter) Send(regionID uint64, msg message.Msg) error {
 
 func (r *RaftstoreRouter) SendRaftMessage(msg *raft_serverpb.RaftMessage) error {
 	regionID := msg.RegionId
-	if r.router.send(regionID, message.NewPeerMsg(message.MsgTypeRaftMessage, regionID, msg)) != nil {
+	if r.router.send(regionID, message.NewPeerMsg(message.MsgTypeRaftMessage, regionID, msg)) != nil { //发给peer失败(因为没有创建)，发给store_worker
 		r.router.sendStore(message.NewPeerMsg(message.MsgTypeStoreRaftMessage, regionID, msg))
 	}
 	return nil

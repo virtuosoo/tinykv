@@ -68,94 +68,96 @@ func (d *peerMsgHandler) applyEntries(entries []eraftpb.Entry) {
 }
 
 func (d *peerMsgHandler) applySingleEntry(entry *eraftpb.Entry) {
-	lastApplied := d.peerStorage.applyState.AppliedIndex
-	if lastApplied+1 != entry.Index {
-		log.Panicf("%v apply out of order last %d now %d", d.Tag, lastApplied, entry.Index)
-	}
-
-	if entry.Data == nil {
-		kvWB := new(engine_util.WriteBatch)
-		d.peerStorage.applyState.AppliedIndex = entry.Index
-		kvWB.SetMeta(meta.ApplyStateKey(d.regionId), d.peerStorage.applyState)
-		kvWB.MustWriteToDB(d.peerStorage.Engines.Kv)
-		return
-	}
-
-	var msg raft_cmdpb.RaftCmdRequest
-	if err := msg.Unmarshal(entry.Data); err != nil {
-		log.Panic(err)
-	}
-	// normal requests
-
-	if len(msg.Requests) > 0 {
-		txn := d.peerStorage.Engines.Kv.NewTransaction(true)
-		resp := newCmdResp()
-		reqs := msg.Requests
-		for _, req := range reqs {
-			switch req.CmdType {
-			case raft_cmdpb.CmdType_Get:
-				val, err := engine_util.GetCFFromTxn(txn, req.Get.Cf, req.Get.Key)
-				if err != nil {
-					if err == badger.ErrKeyNotFound {
-						val = nil
-					} else {
-						log.Panic(err)
-					}
-				}
-				resp.Responses = append(resp.Responses, &raft_cmdpb.Response{
-					CmdType: raft_cmdpb.CmdType_Get,
-					Get: &raft_cmdpb.GetResponse{
-						Value: val,
-					},
-				})
-			case raft_cmdpb.CmdType_Put:
-				txn.Set(engine_util.KeyWithCF(req.Put.Cf, req.Put.Key), req.Put.Value)
-				resp.Responses = append(resp.Responses, &raft_cmdpb.Response{
-					CmdType: raft_cmdpb.CmdType_Put,
-					Put:     &raft_cmdpb.PutResponse{},
-				})
-			case raft_cmdpb.CmdType_Delete:
-				txn.Delete(engine_util.KeyWithCF(req.Delete.Cf, req.Delete.Key))
-				resp.Responses = append(resp.Responses, &raft_cmdpb.Response{
-					CmdType: raft_cmdpb.CmdType_Delete,
-					Delete:  &raft_cmdpb.DeleteResponse{},
-				})
-			case raft_cmdpb.CmdType_Snap:
-				resp.Responses = append(resp.Responses, &raft_cmdpb.Response{
-					CmdType: raft_cmdpb.CmdType_Snap,
-					Snap: &raft_cmdpb.SnapResponse{
-						Region: d.Region(),
-					},
-				})
-			}
-		}
-		d.peerStorage.applyState.AppliedIndex = entry.Index
-		val, err := d.peerStorage.applyState.Marshal()
-		if err != nil {
-			log.Panic(err)
-		}
-		txn.Set(meta.ApplyStateKey(d.regionId), val)
-		err = txn.Commit()
-		if err != nil {
-			log.Panic(err)
+	if entry.EntryType == eraftpb.EntryType_EntryNormal {
+		lastApplied := d.peerStorage.applyState.AppliedIndex
+		if lastApplied+1 != entry.Index {
+			log.Panicf("%v apply out of order last %d now %d", d.Tag, lastApplied, entry.Index)
 		}
 
-		if d.IsLeader() {
-			d.handleProposals(entry, resp)
-		}
-	}
-
-	//admin request
-	if msg.AdminRequest != nil {
-		switch msg.AdminRequest.CmdType {
-		case raft_cmdpb.AdminCmdType_CompactLog:
+		if entry.Data == nil {
 			kvWB := new(engine_util.WriteBatch)
-			d.peerStorage.applyState.TruncatedState.Index = msg.AdminRequest.CompactLog.CompactIndex
-			d.peerStorage.applyState.TruncatedState.Term = msg.AdminRequest.CompactLog.CompactTerm
 			d.peerStorage.applyState.AppliedIndex = entry.Index
 			kvWB.SetMeta(meta.ApplyStateKey(d.regionId), d.peerStorage.applyState)
 			kvWB.MustWriteToDB(d.peerStorage.Engines.Kv)
-			d.ScheduleCompactLog(msg.AdminRequest.CompactLog.CompactIndex)
+			return
+		}
+
+		var msg raft_cmdpb.RaftCmdRequest
+		if err := msg.Unmarshal(entry.Data); err != nil {
+			log.Panic(err)
+		}
+		// normal requests
+
+		if len(msg.Requests) > 0 {
+			txn := d.peerStorage.Engines.Kv.NewTransaction(true)
+			resp := newCmdResp()
+			reqs := msg.Requests
+			for _, req := range reqs {
+				switch req.CmdType {
+				case raft_cmdpb.CmdType_Get:
+					val, err := engine_util.GetCFFromTxn(txn, req.Get.Cf, req.Get.Key)
+					if err != nil {
+						if err == badger.ErrKeyNotFound {
+							val = nil
+						} else {
+							log.Panic(err)
+						}
+					}
+					resp.Responses = append(resp.Responses, &raft_cmdpb.Response{
+						CmdType: raft_cmdpb.CmdType_Get,
+						Get: &raft_cmdpb.GetResponse{
+							Value: val,
+						},
+					})
+				case raft_cmdpb.CmdType_Put:
+					txn.Set(engine_util.KeyWithCF(req.Put.Cf, req.Put.Key), req.Put.Value)
+					resp.Responses = append(resp.Responses, &raft_cmdpb.Response{
+						CmdType: raft_cmdpb.CmdType_Put,
+						Put:     &raft_cmdpb.PutResponse{},
+					})
+				case raft_cmdpb.CmdType_Delete:
+					txn.Delete(engine_util.KeyWithCF(req.Delete.Cf, req.Delete.Key))
+					resp.Responses = append(resp.Responses, &raft_cmdpb.Response{
+						CmdType: raft_cmdpb.CmdType_Delete,
+						Delete:  &raft_cmdpb.DeleteResponse{},
+					})
+				case raft_cmdpb.CmdType_Snap:
+					resp.Responses = append(resp.Responses, &raft_cmdpb.Response{
+						CmdType: raft_cmdpb.CmdType_Snap,
+						Snap: &raft_cmdpb.SnapResponse{
+							Region: d.Region(),
+						},
+					})
+				}
+			}
+			d.peerStorage.applyState.AppliedIndex = entry.Index
+			val, err := d.peerStorage.applyState.Marshal()
+			if err != nil {
+				log.Panic(err)
+			}
+			txn.Set(meta.ApplyStateKey(d.regionId), val)
+			err = txn.Commit()
+			if err != nil {
+				log.Panic(err)
+			}
+
+			if d.IsLeader() {
+				d.handleProposals(entry, resp)
+			}
+		}
+
+		//admin request
+		if msg.AdminRequest != nil {
+			switch msg.AdminRequest.CmdType {
+			case raft_cmdpb.AdminCmdType_CompactLog:
+				kvWB := new(engine_util.WriteBatch)
+				d.peerStorage.applyState.TruncatedState.Index = msg.AdminRequest.CompactLog.CompactIndex
+				d.peerStorage.applyState.TruncatedState.Term = msg.AdminRequest.CompactLog.CompactTerm
+				d.peerStorage.applyState.AppliedIndex = entry.Index
+				kvWB.SetMeta(meta.ApplyStateKey(d.regionId), d.peerStorage.applyState)
+				kvWB.MustWriteToDB(d.peerStorage.Engines.Kv)
+				d.ScheduleCompactLog(msg.AdminRequest.CompactLog.CompactIndex)
+			}
 		}
 	}
 }

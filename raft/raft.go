@@ -351,9 +351,12 @@ func (r *Raft) tickHeartBeat() {
 	r.electionElapsed++
 	r.heartbeatElapsed++
 
-	if r.electionElapsed > r.electionTimeout {
+	if r.electionElapsed >= r.electionTimeout {
 		//暂时怎么都不做
 		r.electionElapsed = 0
+		if r.State == StateLeader && r.leadTransferee != None { //过了超时时间，还没有选出新leader，就放弃
+			r.abortLeaderTransfer()
+		}
 	}
 
 	if r.heartbeatElapsed >= r.heartbeatTimeout {
@@ -395,6 +398,7 @@ func (r *Raft) reset(term uint64) {
 	r.electionElapsed = 0
 	r.heartbeatElapsed = 0
 	r.resetRandomizedElectionTimeout()
+	r.abortLeaderTransfer() //重置LeaderTransfer信息
 	r.votes = make(map[uint64]bool)
 }
 
@@ -549,6 +553,20 @@ func (r *Raft) stepFollower(m pb.Message) {
 		r.electionElapsed = 0
 		r.Lead = m.From
 		r.handleSnapshot(m)
+	case pb.MessageType_MsgTimeoutNow:
+		if r.promotable() {
+			log.Infof("%x received MsgTimeoutNow from %x, starts an election to get leadership", r.id, m.From)
+			r.campaign()
+		} else {
+			log.Infof("%x received MsgTimeoutNow from %x, but not promotable", r.id, m.From)
+		}
+	case pb.MessageType_MsgTransferLeader:
+		if r.Lead == None {
+			log.Infof("%x no leader at term(%d), drop MsgTransferLeader", r.id, r.Term)
+			return
+		}
+		m.To = r.Lead
+		r.send(m)
 	}
 }
 
@@ -565,6 +583,8 @@ func (r *Raft) stepCandidate(m pb.Message) {
 	case pb.MessageType_MsgSnapshot:
 		r.becomeFollower(r.Term, m.From)
 		r.handleSnapshot(m)
+	case pb.MessageType_MsgTimeoutNow:
+		log.Infof("%x ignore MsgTimeoutNow from %x, already a cadicate", r.id, m.From)
 	}
 }
 
@@ -574,20 +594,41 @@ func (r *Raft) stepLeader(m pb.Message) {
 		r.bcastHeartBeat()
 	case pb.MessageType_MsgHeartbeat, pb.MessageType_MsgAppend:
 		log.Panicf("%x leader received a heartbeat or append from another leader %x at Term %d", r.id, m.From, m.Term)
-	case pb.MessageType_MsgHeartbeatResponse:
-		if r.Prs[m.From].Match < r.RaftLog.LastIndex() {
-			r.sendAppend(m.From)
-		}
 	case pb.MessageType_MsgPropose:
 		if len(m.Entries) == 0 {
 			log.Infof("%x propose a empty entries, heartbeat instead", r.id)
 			r.bcastHeartBeat()
 			return
 		}
+
+		if _, ok := r.Prs[r.id]; !ok {
+			log.Infof("%x has been removed from cluster, dropping proposal", r.id)
+			return
+		}
+
+		if r.leadTransferee != None {
+			log.Infof("%x is transferring leadership to %x, dropping proposal", r.id, r.leadTransferee)
+			return
+		}
+
 		r.appendEntries(m.Entries...)
 		r.bcastAppend()
+	}
+
+	_, ok := r.Prs[m.From]
+	if !ok {
+		log.Infof("%x no progress available for %x, maybe removed", r.id, m.From)
+		return
+	}
+	switch m.MsgType {
 	case pb.MessageType_MsgAppendResponse:
 		r.handleAppendResponse(m)
+	case pb.MessageType_MsgTransferLeader:
+		r.handleTransferLeader(m)
+	case pb.MessageType_MsgHeartbeatResponse:
+		if r.Prs[m.From].Match < r.RaftLog.LastIndex() {
+			r.sendAppend(m.From)
+		}
 	}
 }
 
@@ -677,6 +718,11 @@ func (r *Raft) handleAppendResponse(m pb.Message) {
 				log.Infof("%x leader commit %d", r.id, r.RaftLog.committed)
 				r.bcastAppend() //为了让follower的commit更新
 			}
+
+			if m.From == r.leadTransferee && r.Prs[m.From].Match == r.RaftLog.LastIndex() {
+				log.Infof("%x sent MsgTimeoutNow to %x after received MsgAppResp", r.id, m.From)
+				r.send(pb.Message{MsgType: pb.MessageType_MsgTimeoutNow, To: m.From})
+			}
 		}
 	}
 }
@@ -746,6 +792,35 @@ func (r *Raft) restore(s *eraftpb.Snapshot) bool {
 	}
 	log.Infof("%x restored snapshot[index %d term %d]", r.id, s.Metadata.Index, s.Metadata.Term)
 	return true
+}
+
+func (r *Raft) handleTransferLeader(m pb.Message) {
+	if r.leadTransferee != None {
+		if m.From == r.leadTransferee {
+			log.Infof("%x already in progress to transfer to %x", r.id, m.To)
+			return
+		} else {
+			r.abortLeaderTransfer()
+		}
+	}
+
+	if m.From == r.id {
+		log.Infof("%x is already leader. ignore transfer leader to self", r.id)
+		return
+	}
+	log.Infof("%x start to tranfer leadership to %x", r.id, m.To)
+	r.electionElapsed = 0
+	r.leadTransferee = m.From
+
+	if r.Prs[r.leadTransferee].Match == r.RaftLog.LastIndex() {
+		r.send(pb.Message{MsgType: pb.MessageType_MsgTimeoutNow, To: r.leadTransferee})
+	} else {
+		r.sendAppend(r.leadTransferee)
+	}
+}
+
+func (r *Raft) abortLeaderTransfer() {
+	r.leadTransferee = None
 }
 
 // addNode add a new node to raft group

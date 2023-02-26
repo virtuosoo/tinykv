@@ -102,7 +102,7 @@ func (r *tickDriver) run() {
 		select {
 		case <-timer:
 			for regionID := range r.regions {
-				if r.router.send(regionID, message.NewPeerMsg(message.MsgTypeTick, regionID, nil)) != nil {
+				if r.router.send(regionID, message.NewPeerMsg(message.MsgTypeTick, regionID, nil)) != nil { //向每个peer发送tick
 					delete(r.regions, regionID)
 				}
 			}
