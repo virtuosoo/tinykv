@@ -13,8 +13,8 @@ import (
 )
 
 func init() {
-	os.Remove(`../logs/standAloneStorage.log`)
-	logFile, err := os.OpenFile(`../logs/standAloneStorage.log`, os.O_WRONLY|os.O_CREATE, 0666)
+	os.Remove(`standAloneStorage.log`)
+	logFile, err := os.OpenFile(`standAloneStorage.log`, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		panic(err)
 	}
