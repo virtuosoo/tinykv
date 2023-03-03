@@ -276,7 +276,18 @@ func (d *peerMsgHandler) proposeRaftCommand(msg *raft_cmdpb.RaftCmdRequest, cb *
 	if err != nil {
 		log.Panic(err)
 	}
-
+	if msg.AdminRequest != nil {
+		if msg.AdminRequest.TransferLeader != nil { // TransferLeader的request不需要复制
+			d.RaftGroup.TransferLeader(msg.AdminRequest.TransferLeader.Peer.Id)
+			resp := newCmdResp()
+			resp.AdminResponse = &raft_cmdpb.AdminResponse{
+				CmdType:        raft_cmdpb.AdminCmdType_TransferLeader,
+				TransferLeader: &raft_cmdpb.TransferLeaderResponse{},
+			}
+			cb.Done(resp)
+			return
+		}
+	}
 	d.RaftGroup.Propose(data)
 }
 
