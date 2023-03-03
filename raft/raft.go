@@ -399,6 +399,15 @@ func (r *Raft) reset(term uint64) {
 	r.heartbeatElapsed = 0
 	r.resetRandomizedElectionTimeout()
 	r.abortLeaderTransfer() //重置LeaderTransfer信息
+
+	for id := range r.Prs {
+		r.Prs[id].Next = r.RaftLog.LastIndex() + 1
+		if id == r.id {
+			r.Prs[id].Match = r.RaftLog.LastIndex()
+		} else {
+			r.Prs[id].Match = 0 // 重要，需要重置matchIndex数组
+		}
+	}
 	r.votes = make(map[uint64]bool)
 }
 
@@ -465,14 +474,6 @@ func (r *Raft) becomeLeader() {
 
 	//todo 发送一条空日志，这里先发一个心跳
 	//r.Step(pb.Message{MsgType: pb.MessageType_MsgBeat, From: r.id})
-	for id := range r.Prs {
-		r.Prs[id].Next = r.RaftLog.LastIndex() + 1
-		if id == r.id {
-			r.Prs[id].Match = r.RaftLog.LastIndex()
-		} else {
-			r.Prs[id].Match = 0 // 重要，需要重置matchIndex数组
-		}
-	}
 	r.appendEntries(&pb.Entry{Data: nil})
 	log.Infof("%x became Leader at term %v", r.id, r.Term)
 }
@@ -609,6 +610,16 @@ func (r *Raft) stepLeader(m pb.Message) {
 		if r.leadTransferee != None {
 			log.Infof("%x is transferring leadership to %x, dropping proposal", r.id, r.leadTransferee)
 			return
+		}
+
+		for i, e := range m.Entries {
+			if e.EntryType == pb.EntryType_EntryConfChange {
+				if r.PendingConfIndex > r.RaftLog.applied { //还有ConfChange没apply
+					m.Entries[i] = &pb.Entry{EntryType: pb.EntryType_EntryNormal, Data: nil}
+				} else {
+					r.PendingConfIndex = e.Index
+				}
+			}
 		}
 
 		r.appendEntries(m.Entries...)
@@ -826,9 +837,28 @@ func (r *Raft) abortLeaderTransfer() {
 // addNode add a new node to raft group
 func (r *Raft) addNode(id uint64) {
 	// Your Code Here (3A).
+	if _, ok := r.Prs[id]; ok {
+		return
+	}
+
+	r.Prs[id] = &Progress{Match: 0, Next: r.RaftLog.LastIndex() + 1}
 }
 
 // removeNode remove a node from raft group
 func (r *Raft) removeNode(id uint64) {
 	// Your Code Here (3A).
+	delete(r.Prs, id)
+
+	if len(r.Prs) == 0 {
+		return
+	}
+
+	if r.State == StateLeader {
+		if r.leadTransferee == id {
+			r.abortLeaderTransfer()
+		}
+		if r.maybeCommit() {
+			r.bcastAppend()
+		}
+	}
 }
