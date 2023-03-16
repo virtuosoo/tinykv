@@ -365,6 +365,7 @@ func (m *MockSchedulerClient) handleHeartbeatConfVersion(region *metapb.Region) 
 				panic("should only one conf change")
 			}
 			if len(GetDiffPeers(region, searchRegion)) != 1 {
+				log.Infof("should only one different peer, region(%v), serchRegion(%v), diff(%v)", region, searchRegion, GetDiffPeers(region, searchRegion))
 				panic("should only one different peer")
 			}
 			if len(GetDiffPeers(searchRegion, region)) != 0 {

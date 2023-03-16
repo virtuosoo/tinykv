@@ -28,6 +28,31 @@ type ApplySnapResult struct {
 	Region     *metapb.Region
 }
 
+func cloneRegion(r *metapb.Region) *metapb.Region {
+	res := &metapb.Region{
+		Id:       r.Id,
+		StartKey: append([]byte{}, r.StartKey...),
+		EndKey:   append([]byte{}, r.EndKey...),
+		RegionEpoch: &metapb.RegionEpoch{
+			ConfVer: r.RegionEpoch.ConfVer,
+			Version: r.RegionEpoch.Version,
+		},
+		Peers: append([]*metapb.Peer{}, r.Peers...),
+	}
+	return res
+}
+
+func copyRegion(to, from *metapb.Region) {
+	to.Id = from.Id
+	to.StartKey = append([]byte{}, from.StartKey...)
+	to.EndKey = append([]byte{}, from.EndKey...)
+	to.RegionEpoch = &metapb.RegionEpoch{
+		ConfVer: from.RegionEpoch.ConfVer,
+		Version: from.RegionEpoch.Version,
+	}
+	to.Peers = append([]*metapb.Peer{}, from.Peers...)
+}
+
 var _ raft.Storage = new(PeerStorage)
 
 type PeerStorage struct {
@@ -62,6 +87,7 @@ func NewPeerStorage(engines *engine_util.Engines, region *metapb.Region, regionS
 		return nil, err
 	}
 	if raftState.LastIndex < applyState.AppliedIndex {
+		log.Infof("NewPeerStorage raftState(%v), applyState(%v)", raftState, applyState)
 		panic(fmt.Sprintf("%s unexpected raft log index: lastIndex %d < appliedIndex %d",
 			tag, raftState.LastIndex, applyState.AppliedIndex))
 	}
@@ -336,8 +362,9 @@ func (ps *PeerStorage) ApplySnapshot(snapshot *eraftpb.Snapshot, kvWB *engine_ut
 	// and send RegionTaskApply task to region worker through ps.regionSched, also remember call ps.clearMeta
 	// and ps.clearExtraData to delete stale data
 	// Your Code Here (2C).
-	prevRegion := ps.region
+	prevRegion := cloneRegion(ps.region)
 	newRegion := snapData.Region
+	copyRegion(ps.region, newRegion) //global ctx中的storeMeta中的regions map里指向同一个Metapb.Region实例，只能改里面的内容，不要改变指向
 	regionId := newRegion.GetId()
 
 	//发送apply任务
@@ -355,7 +382,6 @@ func (ps *PeerStorage) ApplySnapshot(snapshot *eraftpb.Snapshot, kvWB *engine_ut
 	ps.clearMeta(kvWB, raftWB)
 	ps.clearExtraData(newRegion)
 
-	ps.SetRegion(newRegion)
 	sindex, sterm := snapshot.Metadata.Index, snapshot.Metadata.Term
 
 	ps.raftState.LastIndex = sindex

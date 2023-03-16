@@ -1,6 +1,7 @@
 package raftstore
 
 import (
+	"encoding/binary"
 	"fmt"
 	"time"
 
@@ -63,7 +64,9 @@ func (d *peerMsgHandler) HandleRaftReady() {
 
 func (d *peerMsgHandler) applyEntries(entries []eraftpb.Entry) {
 	for _, entry := range entries {
-		d.applySingleEntry(&entry)
+		if !d.stopped { //可能前面有些entry会销毁此peer，在此判断
+			d.applySingleEntry(&entry)
+		}
 	}
 }
 
@@ -158,6 +161,65 @@ func (d *peerMsgHandler) applySingleEntry(entry *eraftpb.Entry) {
 				kvWB.MustWriteToDB(d.peerStorage.Engines.Kv)
 				d.ScheduleCompactLog(msg.AdminRequest.CompactLog.CompactIndex)
 			}
+		}
+	} else if entry.EntryType == eraftpb.EntryType_EntryConfChange {
+		var cc eraftpb.ConfChange
+		if err := cc.Unmarshal(entry.Data); err != nil {
+			log.Panic(err)
+		}
+		kvWB := new(engine_util.WriteBatch)
+		region := d.Region()
+		var skip bool
+		if cc.ChangeType == eraftpb.ConfChangeType_AddNode {
+			for _, peer := range region.Peers {
+				if peer.Id == cc.NodeId { //已经有了
+					skip = true
+					break
+				}
+			}
+			if !skip {
+				region.RegionEpoch.ConfVer += 1
+				storeId := binary.BigEndian.Uint64(cc.Context)
+				region.Peers = append(region.Peers, &metapb.Peer{Id: cc.NodeId, StoreId: storeId})
+				log.Infof("%v region(%d) add node (%d), peers(%v)", d.Tag, d.regionId, cc.NodeId, region.Peers)
+			}
+		} else if cc.ChangeType == eraftpb.ConfChangeType_RemoveNode {
+			skip = true
+			var idx int
+			for i, peer := range region.Peers {
+				if peer.Id == cc.NodeId {
+					skip = false
+					idx = i
+					break
+				}
+			}
+			if !skip {
+				region.RegionEpoch.ConfVer += 1
+				region.Peers = append(region.Peers[:idx], region.Peers[idx+1:]...)
+				d.removePeerCache(cc.NodeId)
+				log.Infof("%v region(%d) remove node (%d), peers(%v)", d.Tag, d.regionId, cc.NodeId, region.Peers)
+			}
+		} else {
+			log.Panic("invalid ConfChange Type %v", cc.ChangeType)
+		}
+
+		if !skip {
+			meta.WriteRegionState(kvWB, region, rspb.PeerState_Normal)
+			d.peerStorage.applyState.AppliedIndex = entry.Index
+			kvWB.SetMeta(meta.ApplyStateKey(d.regionId), d.peerStorage.applyState)
+			kvWB.MustWriteToDB(d.ctx.engine.Kv)
+
+			d.RaftGroup.ApplyConfChange(cc)
+
+			if cc.ChangeType == eraftpb.ConfChangeType_RemoveNode && cc.NodeId == d.PeerId() {
+				log.Infof("%s destroy at index(%d)", d.Tag, entry.Index)
+				d.destroyPeer()
+			}
+		} else {
+			log.Infof("%s skip a conf change, index(%d)", d.Tag, entry.Index)
+			d.peerStorage.applyState.AppliedIndex = entry.Index
+			kvWB.SetMeta(meta.ApplyStateKey(d.regionId), d.peerStorage.applyState)
+			kvWB.MustWriteToDB(d.ctx.engine.Kv)
 		}
 	}
 }
@@ -287,6 +349,15 @@ func (d *peerMsgHandler) proposeRaftCommand(msg *raft_cmdpb.RaftCmdRequest, cb *
 			cb.Done(resp)
 			return
 		}
+
+		if msg.AdminRequest.ChangePeer != nil {
+			cp := msg.AdminRequest.ChangePeer
+			cc := eraftpb.ConfChange{ChangeType: cp.ChangeType, NodeId: cp.Peer.Id}
+			cc.Context = make([]byte, 8)
+			binary.BigEndian.PutUint64(cc.Context, cp.Peer.StoreId)
+			d.RaftGroup.ProposeConfChange(cc)
+			return
+		}
 	}
 	d.RaftGroup.Propose(data)
 }
@@ -343,6 +414,7 @@ func (d *peerMsgHandler) onRaftMsg(msg *rspb.RaftMessage) error {
 		return nil
 	}
 	if d.stopped {
+		log.Infof("%v onRaftMsg peer already stopped, ignore msg\n", d.Tag)
 		return nil
 	}
 	if msg.GetIsTombstone() {
@@ -386,12 +458,12 @@ func (d *peerMsgHandler) validateRaftMessage(msg *rspb.RaftMessage) bool {
 	from := msg.GetFromPeer()
 	to := msg.GetToPeer()
 	log.Debugf("[region %d] handle raft message %s from %d to %d", regionID, msg, from.GetId(), to.GetId())
-	if to.GetStoreId() != d.storeID() {
+	if to.GetStoreId() != d.storeID() { // 检查store是否匹配
 		log.Warnf("[region %d] store not match, to store id %d, mine %d, ignore it",
 			regionID, to.GetStoreId(), d.storeID())
 		return false
 	}
-	if msg.RegionEpoch == nil {
+	if msg.RegionEpoch == nil { // 检查RegionEpoch
 		log.Errorf("[region %d] missing epoch in raft message, ignore it", regionID)
 		return false
 	}
@@ -514,7 +586,8 @@ func (d *peerMsgHandler) checkSnapshot(msg *rspb.RaftMessage) (*snap.SnapKey, er
 	meta := d.ctx.storeMeta
 	meta.Lock()
 	defer meta.Unlock()
-	if !util.RegionEqual(meta.regions[d.regionId], d.Region()) {
+	log.Infof("%s snapshot[index %d term %d]region info meta.regions: %s \n d.Region(): %s", d.Tag, snapshot.Metadata.Index, snapshot.Metadata.Term, meta.regions[d.regionId], d.Region())
+	if !util.RegionEqual(meta.regions[d.regionId], d.Region()) { //什么情况下会不一致呢？
 		if !d.isInitialized() {
 			log.Infof("%s stale delegate detected, skip", d.Tag)
 			return &key, nil
@@ -540,7 +613,7 @@ func (d *peerMsgHandler) checkSnapshot(msg *rspb.RaftMessage) (*snap.SnapKey, er
 	return nil, nil
 }
 
-func (d *peerMsgHandler) destroyPeer() {
+func (d *peerMsgHandler) destroyPeer() { //自我销毁
 	log.Infof("%s starts destroy", d.Tag)
 	regionID := d.regionId
 	// We can't destroy a peer which is applying snapshot.

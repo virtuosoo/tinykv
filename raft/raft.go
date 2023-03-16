@@ -628,7 +628,7 @@ func (r *Raft) stepLeader(m pb.Message) {
 
 	_, ok := r.Prs[m.From]
 	if !ok {
-		log.Infof("%x no progress available for %x, maybe removed", r.id, m.From)
+		log.Infof("%x no progress available for %x, maybe removed, msgType(%v)", r.id, m.From, m.MsgType)
 		return
 	}
 	switch m.MsgType {
@@ -653,6 +653,7 @@ func (r *Raft) bcastAppend() {
 }
 
 func (r *Raft) bcastHeartBeat() {
+	log.Infof("%x boardcast heartbeat\n", r.id)
 	for id, _ := range r.Prs {
 		if r.id == id {
 			continue
@@ -700,6 +701,7 @@ func (r *Raft) appendEntries(es ...*pb.Entry) {
 	r.RaftLog.append(es...)
 	//todo更新自己的matchindex，并尝试commit
 	r.Prs[r.id].maybeUpdate(r.RaftLog.LastIndex())
+	log.Infof("%x leader append, last Index (%d)", r.id, r.RaftLog.LastIndex())
 	r.maybeCommit()
 }
 
@@ -840,7 +842,7 @@ func (r *Raft) addNode(id uint64) {
 	if _, ok := r.Prs[id]; ok {
 		return
 	}
-
+	log.Infof("raft add node %d", id)
 	r.Prs[id] = &Progress{Match: 0, Next: r.RaftLog.LastIndex() + 1}
 }
 
@@ -852,7 +854,7 @@ func (r *Raft) removeNode(id uint64) {
 	if len(r.Prs) == 0 {
 		return
 	}
-
+	log.Infof("raft remove node %d", id)
 	if r.State == StateLeader {
 		if r.leadTransferee == id {
 			r.abortLeaderTransfer()

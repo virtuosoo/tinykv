@@ -5,6 +5,7 @@ import (
 	"sync/atomic"
 
 	"github.com/pingcap-incubator/tinykv/kv/raftstore/message"
+	"github.com/pingcap-incubator/tinykv/log"
 	"github.com/pingcap-incubator/tinykv/proto/pkg/raft_cmdpb"
 	"github.com/pingcap-incubator/tinykv/proto/pkg/raft_serverpb"
 
@@ -27,7 +28,7 @@ type router struct {
 func newRouter(storeSender chan<- message.Msg) *router {
 	pm := &router{
 		peerSender:  make(chan message.Msg, 40960), //有大缓存的channel
-		storeSender: storeSender,
+		storeSender: storeSender,                   //这个也是40960的缓存大小
 	}
 	return pm
 }
@@ -49,10 +50,12 @@ func (pr *router) register(peer *peer) {
 }
 
 func (pr *router) close(regionID uint64) {
+	log.Infof("in router close")
 	v, ok := pr.peers.Load(regionID)
 	if ok {
 		ps := v.(*peerState)
 		atomic.StoreUint32(&ps.closed, 1)
+		log.Infof("%v set closed", ps.peer.Tag)
 		pr.peers.Delete(regionID)
 	}
 }
@@ -88,6 +91,7 @@ func (r *RaftstoreRouter) Send(regionID uint64, msg message.Msg) error {
 func (r *RaftstoreRouter) SendRaftMessage(msg *raft_serverpb.RaftMessage) error {
 	regionID := msg.RegionId
 	if r.router.send(regionID, message.NewPeerMsg(message.MsgTypeRaftMessage, regionID, msg)) != nil { //发给peer失败(因为没有创建)，发给store_worker
+		log.Infof("send store msg type(%v)", msg.Message.MsgType)
 		r.router.sendStore(message.NewPeerMsg(message.MsgTypeStoreRaftMessage, regionID, msg))
 	}
 	return nil

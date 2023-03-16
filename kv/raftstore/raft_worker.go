@@ -51,7 +51,7 @@ func (rw *raftWorker) run(closeCh <-chan struct{}, wg *sync.WaitGroup) {
 		for _, msg := range msgs {
 			peerState := rw.getPeerState(peerStateMap, msg.RegionID)
 			if peerState == nil {
-				continue //没有这个peer?
+				continue //没有这个peer，有可能消息在raft worker的receiver中堵着了，会销毁peer的消息也在队列中。
 			}
 			newPeerMsgHandler(peerState.peer, rw.ctx).HandleMsg(msg)
 		}
