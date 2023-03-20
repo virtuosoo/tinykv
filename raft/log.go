@@ -77,6 +77,7 @@ func newLog(storage Storage) *RaftLog {
 
 	sents, err := storage.Entries(fi, li+1)
 	if err != nil {
+		log.Infof("sents(%+v), fi(%d) li(%d)", sents, fi, li)
 		log.Panic(err)
 	}
 

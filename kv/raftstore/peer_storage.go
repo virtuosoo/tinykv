@@ -340,13 +340,14 @@ func (ps *PeerStorage) Append(entries []eraftpb.Entry, raftWB *engine_util.Write
 	eli, elt := entries[len(entries)-1].Index, entries[len(entries)-1].Term
 	psli, _ := ps.LastIndex()
 	if eli < psli { //后面的entry不需要了，需要删除
-
+		log.Infof("%v delete entry [%d %d]", ps.Tag, eli+1, psli)
 		for i := eli + 1; i <= psli; i++ {
 			raftWB.DeleteMeta(meta.RaftLogKey(ps.region.Id, i))
 		}
 	}
 	ps.raftState.LastIndex = eli
 	ps.raftState.LastTerm = elt
+	log.Infof("%s stabled log to [index(%d) term(%d)]", ps.Tag, eli, elt)
 	return nil
 }
 

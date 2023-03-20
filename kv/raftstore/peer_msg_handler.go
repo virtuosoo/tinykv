@@ -154,12 +154,14 @@ func (d *peerMsgHandler) applySingleEntry(entry *eraftpb.Entry) {
 			switch msg.AdminRequest.CmdType {
 			case raft_cmdpb.AdminCmdType_CompactLog:
 				kvWB := new(engine_util.WriteBatch)
-				d.peerStorage.applyState.TruncatedState.Index = msg.AdminRequest.CompactLog.CompactIndex
-				d.peerStorage.applyState.TruncatedState.Term = msg.AdminRequest.CompactLog.CompactTerm
 				d.peerStorage.applyState.AppliedIndex = entry.Index
+				if msg.AdminRequest.CompactLog.CompactIndex > d.peerStorage.applyState.TruncatedState.Index { //可能因为本peer因为接受snapshot，导致没有这段日志，此时不应用此gc log
+					d.peerStorage.applyState.TruncatedState.Index = msg.AdminRequest.CompactLog.CompactIndex
+					d.peerStorage.applyState.TruncatedState.Term = msg.AdminRequest.CompactLog.CompactTerm
+					d.ScheduleCompactLog(msg.AdminRequest.CompactLog.CompactIndex)
+				}
 				kvWB.SetMeta(meta.ApplyStateKey(d.regionId), d.peerStorage.applyState)
 				kvWB.MustWriteToDB(d.peerStorage.Engines.Kv)
-				d.ScheduleCompactLog(msg.AdminRequest.CompactLog.CompactIndex)
 			}
 		}
 	} else if entry.EntryType == eraftpb.EntryType_EntryConfChange {
@@ -320,6 +322,10 @@ func (d *peerMsgHandler) preProposeRaftCommand(req *raft_cmdpb.RaftCmdRequest) e
 	return err
 }
 
+func (d *peerMsgHandler) cannotRemove(cc eraftpb.ConfChange) bool {
+	return cc.ChangeType == eraftpb.ConfChangeType_RemoveNode && d.IsLeader() && d.PeerId() == cc.NodeId && len(d.Region().Peers) == 2
+}
+
 func (d *peerMsgHandler) proposeRaftCommand(msg *raft_cmdpb.RaftCmdRequest, cb *message.Callback) {
 	err := d.preProposeRaftCommand(msg)
 	if err != nil {
@@ -353,6 +359,19 @@ func (d *peerMsgHandler) proposeRaftCommand(msg *raft_cmdpb.RaftCmdRequest, cb *
 		if msg.AdminRequest.ChangePeer != nil {
 			cp := msg.AdminRequest.ChangePeer
 			cc := eraftpb.ConfChange{ChangeType: cp.ChangeType, NodeId: cp.Peer.Id}
+
+			if d.cannotRemove(cc) {
+				var target uint64
+				for _, peer := range d.Region().Peers {
+					if peer.Id != d.PeerId() {
+						target = peer.Id
+					}
+				}
+				d.RaftGroup.TransferLeader(target)
+				log.Infof("%v can not remove self, transferLeader to %x", d.Tag, target)
+				return
+			}
+
 			cc.Context = make([]byte, 8)
 			binary.BigEndian.PutUint64(cc.Context, cp.Peer.StoreId)
 			d.RaftGroup.ProposeConfChange(cc)
@@ -759,7 +778,7 @@ func (d *peerMsgHandler) onApproximateRegionSize(size uint64) {
 func (d *peerMsgHandler) onSchedulerHeartbeatTick() {
 	d.ticker.schedule(PeerTickSchedulerHeartbeat)
 
-	if !d.IsLeader() {
+	if !d.IsLeader() { //只有leader才向Scheduler上报消息
 		return
 	}
 	d.HeartbeatScheduler(d.ctx.schedulerTaskSender)

@@ -472,6 +472,16 @@ func (r *Raft) becomeLeader() {
 	r.Lead = r.id
 	r.State = StateLeader
 
+	ents, err := r.RaftLog.getEntries(r.RaftLog.committed + 1)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	nconf, index := r.numOfPendingConf(ents)
+	if nconf >= 1 {
+		r.PendingConfIndex = index
+	}
+
 	//todo 发送一条空日志，这里先发一个心跳
 	//r.Step(pb.Message{MsgType: pb.MessageType_MsgBeat, From: r.id})
 	r.appendEntries(&pb.Entry{Data: nil})
@@ -863,4 +873,16 @@ func (r *Raft) removeNode(id uint64) {
 			r.bcastAppend()
 		}
 	}
+}
+
+func (r *Raft) numOfPendingConf(ents []*pb.Entry) (int, uint64) {
+	var n int
+	var idx uint64
+	for _, entry := range ents {
+		if entry.EntryType == pb.EntryType_EntryConfChange {
+			n += 1
+			idx = entry.Index
+		}
+	}
+	return n, idx
 }
