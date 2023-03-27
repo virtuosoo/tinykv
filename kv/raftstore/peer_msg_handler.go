@@ -297,6 +297,7 @@ func (d *peerMsgHandler) preProposeRaftCommand(req *raft_cmdpb.RaftCmdRequest) e
 	leaderID := d.LeaderId()
 	if !d.IsLeader() {
 		leader := d.getPeerFromCache(leaderID)
+		log.Infof("%v return NotLeader, Leader(%d)", d.Tag, leaderID)
 		return &util.ErrNotLeader{RegionId: regionID, Leader: leader}
 	}
 	// peer_id must be the same as peer's.
@@ -649,7 +650,7 @@ func (d *peerMsgHandler) destroyPeer() { //自我销毁
 	}
 	d.ctx.router.close(regionID)
 	d.stopped = true
-	if isInitialized && meta.regionRanges.Delete(&regionItem{region: d.Region()}) == nil {
+	if meta.regionRanges.Delete(&regionItem{region: d.Region()}) == nil && isInitialized { //error_timeout2.2，这里isInitialized为false，导致regionRanges里面东西没删？ 调换顺序
 		panic(d.Tag + " meta corruption detected")
 	}
 	if _, ok := meta.regions[regionID]; !ok {

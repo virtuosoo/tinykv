@@ -15,6 +15,7 @@ import (
 	"github.com/pingcap-incubator/tinykv/kv/storage"
 	"github.com/pingcap-incubator/tinykv/kv/util/engine_util"
 	"github.com/pingcap-incubator/tinykv/kv/util/worker"
+	"github.com/pingcap-incubator/tinykv/log"
 	"github.com/pingcap-incubator/tinykv/proto/pkg/errorpb"
 	"github.com/pingcap-incubator/tinykv/proto/pkg/kvrpcpb"
 	"github.com/pingcap-incubator/tinykv/proto/pkg/raft_cmdpb"
@@ -196,11 +197,13 @@ func (rs *RaftStorage) Start() error {
 	trans := NewServerTransport(raftClient, snapSender, rs.raftRouter, resolveSender)
 
 	rs.node = raftstore.NewNode(rs.raftSystem, rs.config, schedulerClient)
+	rs.node.PrepareRegionAndStore(rs.engines)
 	err = rs.node.Start(context.TODO(), rs.engines, trans, rs.snapManager)
 	if err != nil {
 		return err
 	}
 
+	log.Infof("raft storage start success")
 	return nil
 }
 

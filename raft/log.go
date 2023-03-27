@@ -81,7 +81,7 @@ func newLog(storage Storage) *RaftLog {
 		log.Panic(err)
 	}
 
-	log := &RaftLog{
+	raftLog := &RaftLog{
 		storage:    storage,
 		entries:    sents,
 		dummyIndex: fi - 1,
@@ -91,10 +91,13 @@ func newLog(storage Storage) *RaftLog {
 	}
 
 	dterm, err := storage.Term(fi - 1)
-	if err != nil {
-		log.dummyTerm = dterm
+	log.Infof("init raftLog with [dummyIndex %d dummyTerm %d]", fi-1, dterm)
+	if err == nil {
+		raftLog.dummyTerm = dterm
+	} else {
+		log.Panicf("new raftLog error : %v", err)
 	}
-	return log
+	return raftLog
 }
 
 // We need to compact the log entries in some point of time like

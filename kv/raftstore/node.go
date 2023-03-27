@@ -128,6 +128,39 @@ const (
 	CheckClusterBootstrapRetrySeconds     = 3
 )
 
+func (n *Node) PrepareRegionAndStore(engines *engine_util.Engines) {
+	ident := &raft_serverpb.StoreIdent{
+		ClusterId: n.clusterID,
+		StoreId:   1,
+	}
+	engine_util.PutMeta(engines.Kv, meta.StoreIdentKey, ident)
+
+	region := &metapb.Region{
+		Id:       1,
+		StartKey: []byte{},
+		EndKey:   []byte{},
+		RegionEpoch: &metapb.RegionEpoch{
+			Version: 1,
+			ConfVer: 1,
+		},
+		Peers: []*metapb.Peer{
+			{
+				Id:      1,
+				StoreId: 1,
+			},
+			{
+				Id:      2,
+				StoreId: 2,
+			},
+			{
+				Id:      3,
+				StoreId: 3,
+			},
+		},
+	}
+	PrepareBootstrapCluster(engines, region)
+}
+
 func (n *Node) checkClusterBootstrapped(ctx context.Context) (bool, error) {
 	for i := 0; i < MaxCheckClusterBootstrappedRetryCount; i++ {
 		bootstrapped, err := n.schedulerClient.IsBootstrapped(ctx)

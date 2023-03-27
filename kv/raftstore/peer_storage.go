@@ -380,8 +380,10 @@ func (ps *PeerStorage) ApplySnapshot(snapshot *eraftpb.Snapshot, kvWB *engine_ut
 	ps.snapState.StateType = snap.SnapState_Applying
 	log.Infof("%v applying snapshot WB wrote to db", ps.Tag)
 
-	ps.clearMeta(kvWB, raftWB)
-	ps.clearExtraData(newRegion)
+	if ps.isInitialized() {
+		ps.clearMeta(kvWB, raftWB)
+		ps.clearExtraData(newRegion)
+	}
 
 	sindex, sterm := snapshot.Metadata.Index, snapshot.Metadata.Term
 

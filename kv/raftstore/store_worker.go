@@ -137,8 +137,8 @@ func (d *storeWorker) checkMsg(msg *rspb.RaftMessage) (bool, error) {
 	regionEpoch := region.RegionEpoch
 	// The region in this peer is already destroyed
 	if util.IsEpochStale(fromEpoch, regionEpoch) {
-		log.Infof("tombstone peer receives a stale message. region_id:%d, from_region_epoch:%s, current_region_epoch:%s, msg_type:%s",
-			regionID, fromEpoch, regionEpoch, msgType)
+		log.Infof("tombstone peer receives a stale message. region_id:%d, from_region_epoch:%s, current_region_epoch:%s, msg:%v",
+			regionID, fromEpoch, regionEpoch, msg)
 		notExist := util.FindPeer(region, fromStoreID) == nil
 		handleStaleMsg(d.ctx.trans, msg, regionEpoch, isVoteMsg && notExist)
 		return true, nil
@@ -211,7 +211,7 @@ func (d *storeWorker) maybeCreatePeer(regionID uint64, msg *rspb.RaftMessage) (b
 		StartKey: msg.StartKey,
 		EndKey:   msg.EndKey,
 	}) {
-		log.Debugf("msg %s is overlapped with exist region %s", msg, region)
+		log.Debugf("msg %+v is overlapped with exist region %+v", msg, region)
 		if util.IsFirstVoteMessage(msg.Message) {
 			meta.pendingVotes = append(meta.pendingVotes, msg)
 		}

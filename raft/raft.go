@@ -820,7 +820,7 @@ func (r *Raft) restore(s *eraftpb.Snapshot) bool {
 func (r *Raft) handleTransferLeader(m pb.Message) {
 	if r.leadTransferee != None {
 		if m.From == r.leadTransferee {
-			log.Infof("%x already in progress to transfer to %x", r.id, m.To)
+			log.Infof("%x already in progress to transfer to %x", r.id, m.From)
 			return
 		} else {
 			r.abortLeaderTransfer()
@@ -831,7 +831,7 @@ func (r *Raft) handleTransferLeader(m pb.Message) {
 		log.Infof("%x is already leader. ignore transfer leader to self", r.id)
 		return
 	}
-	log.Infof("%x start to tranfer leadership to %x", r.id, m.To)
+	log.Infof("%x start to tranfer leadership to %x", r.id, m.From)
 	r.electionElapsed = 0
 	r.leadTransferee = m.From
 
