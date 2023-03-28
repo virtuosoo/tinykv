@@ -181,7 +181,7 @@ func (l *RaftLog) checkSliceOutOfBounds(lo, hi uint64) error {
 	}
 	fi := l.FirstIndex()
 	if lo < fi {
-		log.Debugf("lo %d hi %d, fi %d", lo, hi, fi)
+		log.Debugf("%x lo %d hi %d, fi %d", l.id, lo, hi, fi)
 		return ErrCompacted
 	}
 

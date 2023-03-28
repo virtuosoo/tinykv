@@ -735,7 +735,7 @@ func (r *Raft) handleAppendResponse(m pb.Message) {
 			r.sendAppend(m.From)
 		}
 	} else {
-		log.Infof("%x received a Append sucess, Index(%d)", r.id, m.Index)
+		log.Infof("%x received a Append sucess from %x, Index(%d)", r.id, m.From, m.Index)
 		if r.Prs[m.From].maybeUpdate(m.Index) {
 			if r.maybeCommit() {
 				log.Infof("%x leader commit %d", r.id, r.RaftLog.committed)

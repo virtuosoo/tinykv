@@ -108,11 +108,11 @@ func NewApplyOptions(db *badger.DB, region *metapb.Region) *ApplyOptions {
 
 // `Snapshot` is an interface for snapshot.
 // It's used in these scenarios:
-//   1. build local snapshot
-//   2. read local snapshot and then replicate it to remote raftstores
-//   3. receive snapshot from remote raftstore and write it to local storage
-//   4. apply snapshot
-//   5. snapshot gc
+//  1. build local snapshot
+//  2. read local snapshot and then replicate it to remote raftstores
+//  3. receive snapshot from remote raftstore and write it to local storage
+//  4. apply snapshot
+//  5. snapshot gc
 type Snapshot interface {
 	io.Reader
 	io.Writer
@@ -687,7 +687,16 @@ func (s *Snap) Apply(opts ApplyOptions) error {
 			log.Errorf("open ingest file %s failed: %s", cfFile.Path, err)
 			return err
 		}
-		externalFiles = append(externalFiles, file)
+		// Make a copy of the snapshot files as they are hardlinked into badger
+
+		dir, name := filepath.Split(cfFile.Path)
+		dest, err := os.Create(filepath.Join(dir, "bak-"+name))
+		io.Copy(dest, file)
+		file.Close()
+		if err != nil {
+			panic(err)
+		}
+		externalFiles = append(externalFiles, dest)
 	}
 	n, err := opts.DB.IngestExternalFiles(externalFiles)
 	for _, file := range externalFiles {

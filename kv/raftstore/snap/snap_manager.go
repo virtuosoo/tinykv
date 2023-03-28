@@ -237,7 +237,7 @@ func (sm *SnapManager) GetSnapshotForApplying(snapKey SnapKey) (Snapshot, error)
 }
 
 func (sm *SnapManager) Register(key SnapKey, entry SnapEntry) {
-	log.Debugf("register key:%s, entry:%d", key, entry)
+	log.Debugf("register key:%s, entry:%s", key, entry) //把 %d 改成 %s
 	sm.registryLock.Lock()
 	defer sm.registryLock.Unlock()
 	entries, ok := sm.registry[key]
