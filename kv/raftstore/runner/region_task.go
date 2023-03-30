@@ -188,7 +188,7 @@ func doSnapshot(engines *engine_util.Engines, mgr *snap.SnapManager, regionId ui
 
 	region := regionState.GetRegion()
 	confState := util.ConfStateFromRegion(region)
-	snapshot := &eraftpb.Snapshot{
+	snapshot := &eraftpb.Snapshot{ //这个是给raft用的
 		Metadata: &eraftpb.SnapshotMetadata{
 			Index:     key.Index,
 			Term:      key.Term,

@@ -24,7 +24,7 @@ func newSnapBuilder(cfFiles []*CFFile, dbSnap *badger.Txn, region *metapb.Region
 	}
 }
 
-func (b *snapBuilder) build() error {
+func (b *snapBuilder) build() error { //往snapshot文件里面写数据
 	defer b.txn.Discard()
 	startKey, endKey := b.region.StartKey, b.region.EndKey
 

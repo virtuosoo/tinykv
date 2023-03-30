@@ -226,7 +226,7 @@ var _ Snapshot = new(Snap)
 
 type Snap struct {
 	key         SnapKey
-	displayPath string
+	displayPath string //用于打印输出的path，形如/tmp/test-raftstore3467083903/snap/gen_1_6_35_(default|write|lock).sst
 	CFFiles     []*CFFile
 	cfIndex     int
 
@@ -366,7 +366,7 @@ func NewSnapForApplying(dir string, key SnapKey, sizeTrack *int64, deleter Snaps
 	return NewSnap(dir, key, sizeTrack, false, false, deleter)
 }
 
-func (s *Snap) initForBuilding() error {
+func (s *Snap) initForBuilding() error { //打开tmp的meta和cf文件, 初始化sstWriter
 	if s.Exists() {
 		return nil
 	}
@@ -467,7 +467,7 @@ func (s *Snap) validate() error {
 	return nil
 }
 
-func (s *Snap) saveCFFiles() error {
+func (s *Snap) saveCFFiles() error { //把tmp file 重命名为 最终的file
 	for _, cfFile := range s.CFFiles {
 		if cfFile.KVCount > 0 {
 			err := cfFile.SstWriter.Finish()
