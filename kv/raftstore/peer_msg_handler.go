@@ -52,7 +52,14 @@ func (d *peerMsgHandler) HandleRaftReady() {
 	if d.RaftGroup.HasReady() {
 		rd := d.RaftGroup.Ready()
 
-		d.peerStorage.SaveReadyState(&rd)
+		result, _ := d.peerStorage.SaveReadyState(&rd)
+		if result != nil {
+			meta := d.ctx.storeMeta
+			meta.Lock()
+			meta.setRegion(result.Region, d.peer)
+			meta.regionRanges.ReplaceOrInsert(&regionItem{region: result.Region})
+			meta.Unlock()
+		}
 		d.Send(d.ctx.trans, rd.Messages)
 
 		if len(rd.CommittedEntries) > 0 {
@@ -79,6 +86,11 @@ func (d *peerMsgHandler) initNewRegion(newRegion, region *metapb.Region, splitRe
 		ConfVer: region.RegionEpoch.ConfVer,
 		Version: region.RegionEpoch.Version,
 	}
+
+	if len(region.Peers) != len(splitReq.NewPeerIds) {
+		log.Panicf("len(region.Peers) != len(splitReq.NewPeerIds)")
+	}
+
 	newPeers := make([]*metapb.Peer, 0, len(splitReq.NewPeerIds))
 	for i := 0; i < len(splitReq.NewPeerIds); i++ {
 		newPeers = append(newPeers, &metapb.Peer{
@@ -124,7 +136,7 @@ func (d *peerMsgHandler) applySingleEntry(entry *eraftpb.Entry) {
 			for _, req := range reqs {
 				if isKeyCmd(req) {
 					key := getKeyFromRequest(req)
-					log.Infof("%s req key(%x) start(%x), end(%x)", d.Tag, key, region.StartKey, region.EndKey)
+					log.Infof("%s req key(%s) start(%s), end(%s)", d.Tag, key, region.StartKey, region.EndKey)
 					if !regionContainsKey(region, key) {
 						BindRespError(resp, &util.ErrKeyNotInRegion{
 							Key:    key,
@@ -153,6 +165,7 @@ func (d *peerMsgHandler) applySingleEntry(entry *eraftpb.Entry) {
 						})
 					case raft_cmdpb.CmdType_Put:
 						txn.Set(engine_util.KeyWithCF(req.Put.Cf, req.Put.Key), req.Put.Value)
+						log.Infof("%s put key(%s), val(%s)", d.Tag, req.Put.Key, req.Put.Value)
 						resp.Responses = append(resp.Responses, &raft_cmdpb.Response{
 							CmdType: raft_cmdpb.CmdType_Put,
 							Put:     &raft_cmdpb.PutResponse{},
@@ -167,7 +180,7 @@ func (d *peerMsgHandler) applySingleEntry(entry *eraftpb.Entry) {
 						resp.Responses = append(resp.Responses, &raft_cmdpb.Response{
 							CmdType: raft_cmdpb.CmdType_Snap,
 							Snap: &raft_cmdpb.SnapResponse{
-								Region: d.Region(),
+								Region: cloneRegion(d.Region()),
 							},
 						})
 					}
@@ -202,15 +215,20 @@ func (d *peerMsgHandler) applySingleEntry(entry *eraftpb.Entry) {
 					d.ScheduleCompactLog(msg.AdminRequest.CompactLog.CompactIndex)
 				}
 			case raft_cmdpb.AdminCmdType_Split:
-				var duplicated bool
+				var duplicated, stale bool
 				splitReq := msg.AdminRequest.Split
 				region := d.Region()
+
+				if util.IsEpochStale(msg.Header.GetRegionEpoch(), region.RegionEpoch) {
+					log.Infof("%s split request region epoch not match, now(%v), req(%v)", d.Tag, region.RegionEpoch, msg.Header.GetRegionEpoch())
+					stale = true
+				}
 
 				if !regionContainsKey(region, splitReq.SplitKey) {
 					duplicated = true
 				}
 
-				if !duplicated {
+				if !duplicated && !stale {
 					log.Infof("%s split on key(%x), new peers(%v)", d.Tag, splitReq.SplitKey, splitReq.NewPeerIds)
 					region.RegionEpoch.Version += 1
 
@@ -218,7 +236,7 @@ func (d *peerMsgHandler) applySingleEntry(entry *eraftpb.Entry) {
 					d.initNewRegion(newRegion, region, splitReq)
 					newPeer, err := createPeer(d.Meta.StoreId, d.ctx.cfg, d.ctx.regionTaskSender, d.ctx.engine, newRegion)
 					if err != nil {
-						log.Panicf("%s create peer failed on split", d.Tag)
+						log.Panicf("%s create peer failed on split, err(%v)", d.Tag, err)
 					}
 
 					region.EndKey = splitReq.SplitKey
@@ -226,6 +244,7 @@ func (d *peerMsgHandler) applySingleEntry(entry *eraftpb.Entry) {
 					d.ctx.storeMeta.Lock()
 					d.ctx.storeMeta.regionRanges.ReplaceOrInsert(&regionItem{region: region})
 					d.ctx.storeMeta.regionRanges.ReplaceOrInsert(&regionItem{region: newRegion})
+					d.ctx.storeMeta.setRegion(newRegion, newPeer)
 					d.ctx.storeMeta.Unlock()
 
 					d.ctx.router.register(newPeer)
@@ -240,7 +259,7 @@ func (d *peerMsgHandler) applySingleEntry(entry *eraftpb.Entry) {
 						d.notifyHeartbeatScheduler(newRegion, newPeer)
 					}
 				} else {
-					log.Infof("%s skipped a duplicated split request", d.Tag)
+					log.Infof("%s skipped a duplicated or stale split request", d.Tag)
 				}
 			}
 			d.peerStorage.applyState.AppliedIndex = entry.Index

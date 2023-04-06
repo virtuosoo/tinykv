@@ -363,9 +363,15 @@ func (ps *PeerStorage) ApplySnapshot(snapshot *eraftpb.Snapshot, kvWB *engine_ut
 	// and send RegionTaskApply task to region worker through ps.regionSched, also remember call ps.clearMeta
 	// and ps.clearExtraData to delete stale data
 	// Your Code Here (2C).
+
 	prevRegion := cloneRegion(ps.region)
 	newRegion := snapData.Region
-	copyRegion(ps.region, newRegion) //global ctx中的storeMeta中的regions map里指向同一个Metapb.Region实例，只能改里面的内容，不要改变指向
+	if ps.isInitialized() {
+		ps.clearMeta(kvWB, raftWB)
+		ps.clearExtraData(newRegion)
+	}
+
+	ps.SetRegion(newRegion)
 	regionId := newRegion.GetId()
 
 	//发送apply任务
@@ -379,11 +385,6 @@ func (ps *PeerStorage) ApplySnapshot(snapshot *eraftpb.Snapshot, kvWB *engine_ut
 	}
 	ps.snapState.StateType = snap.SnapState_Applying
 	log.Infof("%v applying snapshot WB wrote to db", ps.Tag)
-
-	if ps.isInitialized() {
-		ps.clearMeta(kvWB, raftWB)
-		ps.clearExtraData(newRegion)
-	}
 
 	sindex, sterm := snapshot.Metadata.Index, snapshot.Metadata.Term
 
@@ -418,6 +419,8 @@ func (ps *PeerStorage) SaveReadyState(ready *raft.Ready) (*ApplySnapResult, erro
 	// Hint: you may call `Append()` and `ApplySnapshot()` in this function
 	// Your Code Here (2B/2C).
 
+	var result *ApplySnapResult
+	var err error
 	raftWB := new(engine_util.WriteBatch)
 	kvWB := new(engine_util.WriteBatch)
 	if len(ready.Entries) > 0 {
@@ -429,7 +432,10 @@ func (ps *PeerStorage) SaveReadyState(ready *raft.Ready) (*ApplySnapResult, erro
 		if ps.applyState.AppliedIndex > ready.Snapshot.Metadata.Index {
 			log.Warnf("%v get stale snapshot in ready, lastapplied %d snapshot index %d", ps.Tag, ps.applyState.AppliedIndex, ready.Snapshot.Metadata.Index)
 		} else {
-			ps.ApplySnapshot(&ready.Snapshot, kvWB, raftWB)
+			result, err = ps.ApplySnapshot(&ready.Snapshot, kvWB, raftWB)
+			if err != nil {
+				log.Panic(err)
+			}
 		}
 
 	}
@@ -441,7 +447,7 @@ func (ps *PeerStorage) SaveReadyState(ready *raft.Ready) (*ApplySnapResult, erro
 	raftWB.SetMeta(meta.RaftStateKey(ps.region.Id), ps.raftState)
 	raftWB.MustWriteToDB(ps.Engines.Raft)
 	kvWB.MustWriteToDB(ps.Engines.Kv)
-	return nil, nil
+	return result, nil
 }
 
 func (ps *PeerStorage) ClearData() {

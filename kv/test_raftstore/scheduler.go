@@ -257,6 +257,7 @@ func (m *MockSchedulerClient) RegionHeartbeat(req *schedulerpb.RegionHeartbeatRe
 		return err
 	}
 
+	log.Infof("handle region heartbeat, region(%v)", req.Region)
 	m.Lock()
 	defer m.Unlock()
 

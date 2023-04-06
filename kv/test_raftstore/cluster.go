@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/Connor1996/badger"
@@ -218,6 +219,7 @@ func (c *Cluster) CallCommandOnLeader(request *raft_cmdpb.RaftCmdRequest, timeou
 	leader := c.LeaderOfRegion(regionID)
 	for {
 		if time.Since(startTime) > timeout {
+			log.Infof("CallCommandOnLeader time out return nil, start time(%v), now(%v)", startTime, time.Now())
 			return nil, nil
 		}
 		if leader == nil {
@@ -228,7 +230,7 @@ func (c *Cluster) CallCommandOnLeader(request *raft_cmdpb.RaftCmdRequest, timeou
 		if resp == nil {
 			log.Debugf("can't call command %s on leader %d of region %d", request.String(), leader.GetId(), regionID)
 			newLeader := c.LeaderOfRegion(regionID)
-			if leader == newLeader {
+			if leader.Id == newLeader.Id {
 				region, _, err := c.schedulerClient.GetRegionByID(context.TODO(), regionID)
 				if err != nil {
 					return nil, nil
@@ -368,6 +370,10 @@ func (c *Cluster) Scan(start, end []byte) [][]byte {
 	key := start
 	for (len(end) != 0 && bytes.Compare(key, end) < 0) || (len(key) == 0 && len(end) == 0) {
 		resp, txn := c.Request(key, []*raft_cmdpb.Request{req}, 5*time.Second)
+
+		if txn == nil {
+			panic("txn is nil")
+		}
 		if resp.Header.Error != nil {
 			panic(resp.Header.Error)
 		}
@@ -387,6 +393,7 @@ func (c *Cluster) Scan(start, end []byte) [][]byte {
 			if err != nil {
 				panic(err)
 			}
+			log.Debugf("cluster iterd key(%s), value(%s)", iter.Item().Key(), value)
 			values = append(values, value)
 		}
 		iter.Close()
@@ -394,6 +401,45 @@ func (c *Cluster) Scan(start, end []byte) [][]byte {
 		key = region.EndKey
 		if len(key) == 0 {
 			break
+		}
+	}
+
+	return values
+}
+
+// ！！！！在multi raft架构下，该函数不能使用
+func (c *Cluster) testScan(cli, i, j int) [][]byte {
+	start := []byte(strconv.Itoa(cli) + " " + fmt.Sprintf("%08d", i))
+	end := []byte(strconv.Itoa(cli) + " " + fmt.Sprintf("%08d", j))
+
+	req := NewSnapCmd()
+	values := make([][]byte, 0)
+	key := start
+	if (len(end) != 0 && bytes.Compare(key, end) < 0) || (len(key) == 0 && len(end) == 0) {
+		resp, txn := c.Request(key, []*raft_cmdpb.Request{req}, 5*time.Second)
+
+		if txn == nil {
+			panic("txn is nil")
+		}
+		if resp.Header.Error != nil {
+			panic(resp.Header.Error)
+		}
+		if len(resp.Responses) != 1 {
+			panic("len(resp.Responses) != 1")
+		}
+		if resp.Responses[0].CmdType != raft_cmdpb.CmdType_Snap {
+			panic("resp.Responses[0].CmdType != raft_cmdpb.CmdType_Snap")
+		}
+
+		for k := i; k < j; k++ {
+			key := []byte(strconv.Itoa(cli) + " " + fmt.Sprintf("%08d", k))
+			item, err := txn.Get(engine_util.KeyWithCF(engine_util.CfDefault, key))
+			if err != nil {
+				log.Panicf("%d client get err(%v), key(%s)", cli, err, key)
+			}
+			log.Infof("%d raw get key(%s)", cli, key)
+			val, _ := item.ValueCopy(nil)
+			values = append(values, val)
 		}
 	}
 
