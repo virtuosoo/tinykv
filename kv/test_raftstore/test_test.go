@@ -171,6 +171,7 @@ func GenericTest(t *testing.T, part string, nclients int, unreliable bool, crash
 	if maxraftlog != -1 {
 		cfg.RaftLogGcCountLimit = uint64(maxraftlog)
 	}
+	rand.Seed(time.Now().Unix())
 	if split {
 		cfg.RegionMaxSize = 300
 		cfg.RegionSplitSize = 200
@@ -207,19 +208,22 @@ func GenericTest(t *testing.T, part string, nclients int, unreliable bool, crash
 				if (rand.Int() % 1000) < 500 {
 					key := strconv.Itoa(cli) + " " + fmt.Sprintf("%08d", j)
 					value := "x " + strconv.Itoa(cli) + " " + strconv.Itoa(j) + " y"
-					// log.Infof("%d: client new put %v,%v\n", cli, key, value)
+					log.Infof("%d: client new put %v,%v\n", cli, key, value)
 					cluster.MustPut([]byte(key), []byte(value))
+					log.Infof("%d: client new put %v,%v finished\n", cli, key, value)
 					last = NextValue(last, value)
 					j++
 				} else {
 					start := strconv.Itoa(cli) + " " + fmt.Sprintf("%08d", 0)
 					end := strconv.Itoa(cli) + " " + fmt.Sprintf("%08d", j)
-					// log.Infof("%d: client new scan %v-%v\n", cli, start, end)
+					log.Infof("%d: client new scan %v-%v\n", cli, start, end)
+					//values := cluster.testScan(cli, 0, j)
 					values := cluster.Scan([]byte(start), []byte(end))
 					v := string(bytes.Join(values, []byte("")))
 					if v != last {
 						log.Fatalf("get wrong value, client %v\nwant:%v\ngot: %v\n", cli, last, v)
 					}
+					log.Infof("%d: client new scan %v-%v finished\n", cli, start, end)
 				}
 			}
 		})
@@ -275,6 +279,7 @@ func GenericTest(t *testing.T, part string, nclients int, unreliable bool, crash
 			// if j < 10 {
 			// 	log.Printf("Warning: client %d managed to perform only %d put operations in 1 sec?\n", i, j)
 			// }
+			fmt.Printf("client %d performed %d put\n", cli, j)
 			start := strconv.Itoa(cli) + " " + fmt.Sprintf("%08d", 0)
 			end := strconv.Itoa(cli) + " " + fmt.Sprintf("%08d", j)
 			values := cluster.Scan([]byte(start), []byte(end))
@@ -549,12 +554,16 @@ func TestBasicConfChange3B(t *testing.T) {
 
 	// now region 1 only has peer: (1, 1)
 	cluster.MustPut([]byte("k1"), []byte("v1"))
+	fmt.Printf("put k1 ok\n")
 	MustGetNone(cluster.engines[2], []byte("k1"))
-
+	fmt.Printf("can not get k1 in store 2\n")
 	// add peer (2, 2) to region 1
 	cluster.MustAddPeer(1, NewPeer(2, 2))
+	fmt.Printf("add node 2 ok\n")
 	cluster.MustPut([]byte("k2"), []byte("v2"))
+	fmt.Printf("put k2 ok\n")
 	cluster.MustGet([]byte("k2"), []byte("v2"))
+	fmt.Printf("get k2 ok\n")
 	MustGetEqual(cluster.engines[2], []byte("k1"), []byte("v1"))
 	MustGetEqual(cluster.engines[2], []byte("k2"), []byte("v2"))
 
@@ -566,8 +575,9 @@ func TestBasicConfChange3B(t *testing.T) {
 
 	// add peer (3, 3) to region 1
 	cluster.MustAddPeer(1, NewPeer(3, 3))
+	fmt.Printf("add node 3 ok\n")
 	cluster.MustRemovePeer(1, NewPeer(2, 2))
-
+	fmt.Printf("remove node 2 ok\n")
 	cluster.MustPut([]byte("k3"), []byte("v3"))
 	cluster.MustGet([]byte("k3"), []byte("v3"))
 	MustGetEqual(cluster.engines[3], []byte("k1"), []byte("v1"))
@@ -579,17 +589,20 @@ func TestBasicConfChange3B(t *testing.T) {
 	MustGetNone(cluster.engines[2], []byte("k2"))
 
 	cluster.MustAddPeer(1, NewPeer(2, 2))
+	fmt.Printf("add node 2(2) ok\n")
 	MustGetEqual(cluster.engines[2], []byte("k1"), []byte("v1"))
 	MustGetEqual(cluster.engines[2], []byte("k2"), []byte("v2"))
 	MustGetEqual(cluster.engines[2], []byte("k3"), []byte("v3"))
 
 	// remove peer (2, 2) from region 1
 	cluster.MustRemovePeer(1, NewPeer(2, 2))
+	fmt.Printf("remove node 2(2) ok\n")
 	// add peer (2, 4) to region 1
 	cluster.MustAddPeer(1, NewPeer(2, 4))
+	fmt.Printf("add node (2, 4) ok\n")
 	// remove peer (3, 3) from region 1
 	cluster.MustRemovePeer(1, NewPeer(3, 3))
-
+	fmt.Printf("remove node (3, 3)(2) ok\n")
 	cluster.MustPut([]byte("k4"), []byte("v4"))
 	MustGetEqual(cluster.engines[2], []byte("k1"), []byte("v1"))
 	MustGetEqual(cluster.engines[2], []byte("k4"), []byte("v4"))
@@ -691,19 +704,27 @@ func TestOneSplit3B(t *testing.T) {
 		cluster.MustPut([]byte(fmt.Sprintf("k%d", i)), []byte(fmt.Sprintf("v%d", i)))
 	}
 
+	fmt.Printf("put 100 keys ok\n")
+
 	time.Sleep(200 * time.Millisecond)
 	cluster.ClearFilters()
 
 	left := cluster.GetRegion([]byte("k1"))
 	right := cluster.GetRegion([]byte("k2"))
 
+	fmt.Printf("left id (%v) right id(%v)\n", left.Id, right.Id)
 	assert.NotEqual(t, left.GetId(), right.GetId())
 	assert.True(t, bytes.Equal(region.GetStartKey(), left.GetStartKey()))
 	assert.True(t, bytes.Equal(left.GetEndKey(), right.GetStartKey()))
 	assert.True(t, bytes.Equal(right.GetEndKey(), region.GetEndKey()))
 
 	req := NewRequest(left.GetId(), left.GetRegionEpoch(), []*raft_cmdpb.Request{NewGetCfCmd(engine_util.CfDefault, []byte("k2"))})
-	resp, _ := cluster.CallCommandOnLeader(&req, time.Second)
+	resp, _ := cluster.CallCommandOnLeader(&req, 2*time.Second) //course原timeout设置为1s，可能会导致超时返回nil
+
+	if resp == nil {
+		fmt.Printf("get nil resp, why??\n")
+	}
+	fmt.Printf("%v\n", resp)
 	assert.NotNil(t, resp.GetHeader().GetError())
 	assert.NotNil(t, resp.GetHeader().GetError().GetKeyNotInRegion())
 
