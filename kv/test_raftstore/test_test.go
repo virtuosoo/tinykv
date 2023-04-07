@@ -272,6 +272,7 @@ func GenericTest(t *testing.T, part string, nclients int, unreliable bool, crash
 			}
 		}
 
+		tot := 0
 		for cli := 0; cli < nclients; cli++ {
 			// log.Printf("read from clients %d\n", cli)
 			j := <-clnts[cli]
@@ -279,7 +280,8 @@ func GenericTest(t *testing.T, part string, nclients int, unreliable bool, crash
 			// if j < 10 {
 			// 	log.Printf("Warning: client %d managed to perform only %d put operations in 1 sec?\n", i, j)
 			// }
-			fmt.Printf("client %d performed %d put\n", cli, j)
+			fmt.Printf("client %d performed %d put\r\n", cli, j)
+			tot += j
 			start := strconv.Itoa(cli) + " " + fmt.Sprintf("%08d", 0)
 			end := strconv.Itoa(cli) + " " + fmt.Sprintf("%08d", j)
 			values := cluster.Scan([]byte(start), []byte(end))
@@ -292,6 +294,8 @@ func GenericTest(t *testing.T, part string, nclients int, unreliable bool, crash
 			}
 		}
 
+		avg := float64(tot) / float64(nclients)
+		fmt.Printf("clients avg performed %v puts\r\n \r\n", avg)
 		if maxraftlog > 0 {
 			time.Sleep(1 * time.Second)
 
