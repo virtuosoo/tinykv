@@ -51,6 +51,9 @@ ci: default
 format:
 	@gofmt -s -w `find . -name '*.go' -type f ! -path '*/_tools/*' -print`
 
+projectRaft:
+		$(GOTEST) ./raft -run Raft
+
 project1:
 	$(GOTEST) ./kv/server -run 1
 

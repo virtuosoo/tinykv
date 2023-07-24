@@ -34,7 +34,7 @@ import (
 	pb "github.com/pingcap-incubator/tinykv/proto/pkg/eraftpb"
 )
 
-func TestFollowerUpdateTermFromMessage2AA(t *testing.T) {
+func TestNormalElectionRaft(t *testing.T) {
 	testUpdateTermFromMessage(t, StateFollower)
 }
 func TestCandidateUpdateTermFromMessage2AA(t *testing.T) {
@@ -73,7 +73,7 @@ func testUpdateTermFromMessage(t *testing.T, state StateType) {
 
 // TestStartAsFollower tests that when servers start up, they begin as followers.
 // Reference: section 5.2
-func TestStartAsFollower2AA(t *testing.T) {
+func TestStartAsFollowerRaft(t *testing.T) {
 	r := newTestRaft(1, []uint64{1, 2, 3}, 10, 1, NewMemoryStorage())
 	if r.State != StateFollower {
 		t.Errorf("state = %s, want %s", r.State, StateFollower)
@@ -84,7 +84,7 @@ func TestStartAsFollower2AA(t *testing.T) {
 // it will send a MessageType_MsgHeartbeat with m.Index = 0, m.LogTerm=0 and empty entries
 // as heartbeat to all followers.
 // Reference: section 5.2
-func TestLeaderBcastBeat2AA(t *testing.T) {
+func TestLeaderBcastBeatRaft(t *testing.T) {
 	// heartbeat interval
 	hi := 1
 	r := newTestRaft(1, []uint64{1, 2, 3}, 10, hi, NewMemoryStorage())
@@ -167,7 +167,7 @@ func testNonleaderStartElection(t *testing.T, state StateType) {
 // b) it loses the election
 // c) it is unclear about the result
 // Reference: section 5.2
-func TestLeaderElectionInOneRoundRPC2AA(t *testing.T) {
+func TestLeaderElectionInOneRoundRPC(t *testing.T) {
 	tests := []struct {
 		size  int
 		votes map[uint64]bool
@@ -207,7 +207,7 @@ func TestLeaderElectionInOneRoundRPC2AA(t *testing.T) {
 // TestFollowerVote tests that each follower will vote for at most one
 // candidate in a given term, on a first-come-first-served basis.
 // Reference: section 5.2
-func TestFollowerVote2AA(t *testing.T) {
+func TestFollowerVoteRaft(t *testing.T) {
 	tests := []struct {
 		vote    uint64
 		nvote   uint64
@@ -242,7 +242,7 @@ func TestFollowerVote2AA(t *testing.T) {
 // to be leader whose term is at least as large as the candidate's current term,
 // it recognizes the leader as legitimate and returns to follower state.
 // Reference: section 5.2
-func TestCandidateFallback2AA(t *testing.T) {
+func TestCandidateFallbackRaft(t *testing.T) {
 	tests := []pb.Message{
 		{From: 2, To: 1, Term: 1, MsgType: pb.MessageType_MsgAppend},
 		{From: 2, To: 1, Term: 2, MsgType: pb.MessageType_MsgAppend},
@@ -302,7 +302,7 @@ func testNonleaderElectionTimeoutRandomized(t *testing.T, state StateType) {
 	}
 }
 
-func TestFollowersElectionTimeoutNonconflict2AA(t *testing.T) {
+func TestFollowersElectionTimeoutNonconflictRaft(t *testing.T) {
 	testNonleadersElectionTimeoutNonconflict(t, StateFollower)
 }
 func TestCandidatesElectionTimeoutNonconflict2AA(t *testing.T) {
@@ -360,7 +360,7 @@ func testNonleadersElectionTimeoutNonconflict(t *testing.T, state StateType) {
 // the new entries.
 // Also, it writes the new entry into stable storage.
 // Reference: section 5.3
-func TestLeaderStartReplication2AB(t *testing.T) {
+func TestLeaderStartReplicationRaft(t *testing.T) {
 	s := NewMemoryStorage()
 	r := newTestRaft(1, []uint64{1, 2, 3}, 10, 1, s)
 	r.becomeCandidate()
@@ -400,7 +400,7 @@ func TestLeaderStartReplication2AB(t *testing.T) {
 // and it includes that index in future AppendEntries RPCs so that the other
 // servers eventually find out.
 // Reference: section 5.3
-func TestLeaderCommitEntry2AB(t *testing.T) {
+func TestLeaderCommitEntryRaft(t *testing.T) {
 	s := NewMemoryStorage()
 	r := newTestRaft(1, []uint64{1, 2, 3}, 10, 1, s)
 	r.becomeCandidate()
@@ -438,7 +438,7 @@ func TestLeaderCommitEntry2AB(t *testing.T) {
 // TestLeaderAcknowledgeCommit tests that a log entry is committed once the
 // leader that created the entry has replicated it on a majority of the servers.
 // Reference: section 5.3
-func TestLeaderAcknowledgeCommit2AB(t *testing.T) {
+func TestLeaderAcknowledgeCommitRaft(t *testing.T) {
 	tests := []struct {
 		size      int
 		acceptors map[uint64]bool
@@ -511,7 +511,7 @@ func TestLeaderCommitPrecedingEntries2AB(t *testing.T) {
 // TestFollowerCommitEntry tests that once a follower learns that a log entry
 // is committed, it applies the entry to its local state machine (in log order).
 // Reference: section 5.3
-func TestFollowerCommitEntry2AB(t *testing.T) {
+func TestFollowerCommitEntryRaft(t *testing.T) {
 	tests := []struct {
 		ents   []*pb.Entry
 		commit uint64
@@ -614,7 +614,7 @@ func TestFollowerCheckMessageType_MsgAppend2AB(t *testing.T) {
 // and append any new entries not already in the log.
 // Also, it writes the new entry into stable storage.
 // Reference: section 5.3
-func TestFollowerAppendEntries2AB(t *testing.T) {
+func TestFollowerAppendEntriesRaft(t *testing.T) {
 	tests := []struct {
 		index, term uint64
 		lterm       uint64
@@ -805,7 +805,7 @@ func TestVoteRequest2AB(t *testing.T) {
 // TestVoter tests the voter denies its vote if its own log is more up-to-date
 // than that of the candidate.
 // Reference: section 5.4.1
-func TestVoter2AB(t *testing.T) {
+func TestVoterRaft(t *testing.T) {
 	tests := []struct {
 		ents    []pb.Entry
 		logterm uint64

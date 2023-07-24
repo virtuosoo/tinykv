@@ -238,7 +238,12 @@ func GenericTest(t *testing.T, part string, nclients int, unreliable bool, crash
 			time.Sleep(100 * time.Millisecond)
 			go confchanger(t, cluster, ch_confchange, &done_confchanger)
 		}
-		time.Sleep(5 * time.Second)
+		if i == 0 {
+			time.Sleep(5 * time.Second)
+		} else {
+			time.Sleep(5 * time.Second)
+		}
+
 		atomic.StoreInt32(&done_clients, 1)     // tell clients to quit
 		atomic.StoreInt32(&done_partitioner, 1) // tell partitioner to quit
 		atomic.StoreInt32(&done_confchanger, 1) // tell confchanger to quit

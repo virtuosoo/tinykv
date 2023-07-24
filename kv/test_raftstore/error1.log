@@ -1,0 +1,860 @@
+2023/03/15 11:12:34.960990 node.go:193: [info] start raft store node, storeID: 1
+2023/03/15 11:12:34.962981 peer.go:41: [info] region id:1 region_epoch:<conf_ver:1 version:1 > peers:<id:2 store_id:2 > peers:<id:3 store_id:3 > peers:<id:4 store_id:4 > peers:<id:5 store_id:5 > peers:<id:1 store_id:1 >  create peer with ID 1
+2023/03/15 11:12:34.964089 log.go:213: [info] 1 apply to 5
+2023/03/15 11:12:34.964761 raft.go:454: [info] 1 became follower at term 5
+2023/03/15 11:12:34.965665 raftstore.go:186: [info] start store 1, region_count 1, tombstone_count 0, takes 3.1153ms
+2023/03/15 11:12:34.967365 node.go:193: [info] start raft store node, storeID: 2
+2023/03/15 11:12:34.968389 peer.go:41: [info] region id:1 region_epoch:<conf_ver:1 version:1 > peers:<id:2 store_id:2 > peers:<id:3 store_id:3 > peers:<id:4 store_id:4 > peers:<id:5 store_id:5 > peers:<id:1 store_id:1 >  create peer with ID 2
+2023/03/15 11:12:34.972977 log.go:213: [info] 2 apply to 5
+2023/03/15 11:12:34.973846 raft.go:454: [info] 2 became follower at term 5
+2023/03/15 11:12:34.974575 raftstore.go:186: [info] start store 2, region_count 1, tombstone_count 0, takes 6.200101ms
+2023/03/15 11:12:34.975798 node.go:193: [info] start raft store node, storeID: 3
+2023/03/15 11:12:34.976285 peer.go:41: [info] region id:1 region_epoch:<conf_ver:1 version:1 > peers:<id:2 store_id:2 > peers:<id:3 store_id:3 > peers:<id:4 store_id:4 > peers:<id:5 store_id:5 > peers:<id:1 store_id:1 >  create peer with ID 3
+2023/03/15 11:12:34.976759 log.go:213: [info] 3 apply to 5
+2023/03/15 11:12:34.977202 raft.go:454: [info] 3 became follower at term 5
+2023/03/15 11:12:34.977620 raftstore.go:186: [info] start store 3, region_count 1, tombstone_count 0, takes 1.3557ms
+2023/03/15 11:12:34.978623 node.go:193: [info] start raft store node, storeID: 4
+2023/03/15 11:12:34.979093 peer.go:41: [info] region id:1 region_epoch:<conf_ver:1 version:1 > peers:<id:2 store_id:2 > peers:<id:3 store_id:3 > peers:<id:4 store_id:4 > peers:<id:5 store_id:5 > peers:<id:1 store_id:1 >  create peer with ID 4
+2023/03/15 11:12:34.979579 log.go:213: [info] 4 apply to 5
+2023/03/15 11:12:34.979960 raft.go:454: [info] 4 became follower at term 5
+2023/03/15 11:12:34.980404 raftstore.go:186: [info] start store 4, region_count 1, tombstone_count 0, takes 1.3273ms
+2023/03/15 11:12:34.981371 node.go:193: [info] start raft store node, storeID: 5
+2023/03/15 11:12:34.981839 peer.go:41: [info] region id:1 region_epoch:<conf_ver:1 version:1 > peers:<id:2 store_id:2 > peers:<id:3 store_id:3 > peers:<id:4 store_id:4 > peers:<id:5 store_id:5 > peers:<id:1 store_id:1 >  create peer with ID 5
+2023/03/15 11:12:34.982259 log.go:213: [info] 5 apply to 5
+2023/03/15 11:12:34.982651 raft.go:454: [info] 5 became follower at term 5
+2023/03/15 11:12:34.983012 raftstore.go:186: [info] start store 5, region_count 1, tombstone_count 0, takes 1.1889ms
+2023/03/15 11:12:35.476382 raft.go:463: [info] 2 became Candidate at term 6
+2023/03/15 11:12:35.478629 raft.go:667: [info] 2 received vote from 2 at term 6
+2023/03/15 11:12:35.480433 raft.go:425: [info] 2 send requestVote msg to 3
+2023/03/15 11:12:35.481999 raft.go:425: [info] 2 send requestVote msg to 4
+2023/03/15 11:12:35.483717 raft.go:425: [info] 2 send requestVote msg to 5
+2023/03/15 11:12:35.485286 raft.go:425: [info] 2 send requestVote msg to 1
+2023/03/15 11:12:35.493453 log.go:213: [info] 2 apply to 5
+2023/03/15 11:12:35.495961 raft.go:501: [info] 4 [term: 5] received a MsgRequestVote message with higher term from 2 [term: 6]
+2023/03/15 11:12:35.497340 raft.go:454: [info] 4 became follower at term 6
+2023/03/15 11:12:35.496806 raft.go:501: [info] 1 [term: 5] received a MsgRequestVote message with higher term from 2 [term: 6]
+2023/03/15 11:12:35.498716 raft.go:454: [info] 1 became follower at term 6
+2023/03/15 11:12:35.499163 raft.go:436: [info] 1 [last logterm: 0, index: 5, vote: 0] grant vote for 2 [logterm: 0, index: 5] at term 6
+2023/03/15 11:12:35.496070 raft.go:501: [info] 5 [term: 5] received a MsgRequestVote message with higher term from 2 [term: 6]
+2023/03/15 11:12:35.496331 raft.go:501: [info] 3 [term: 5] received a MsgRequestVote message with higher term from 2 [term: 6]
+2023/03/15 11:12:35.500804 raft.go:454: [info] 3 became follower at term 6
+2023/03/15 11:12:35.501252 raft.go:436: [info] 3 [last logterm: 0, index: 5, vote: 0] grant vote for 2 [logterm: 0, index: 5] at term 6
+2023/03/15 11:12:35.501931 log.go:213: [info] 1 apply to 5
+2023/03/15 11:12:35.497918 raft.go:436: [info] 4 [last logterm: 0, index: 5, vote: 0] grant vote for 2 [logterm: 0, index: 5] at term 6
+2023/03/15 11:12:35.500302 raft.go:454: [info] 5 became follower at term 6
+2023/03/15 11:12:35.504185 raft.go:436: [info] 5 [last logterm: 0, index: 5, vote: 0] grant vote for 2 [logterm: 0, index: 5] at term 6
+2023/03/15 11:12:35.501977 raft.go:667: [info] 2 received vote from 1 at term 6
+2023/03/15 11:12:35.505340 raft.go:667: [info] 2 received vote from 3 at term 6
+2023/03/15 11:12:35.505715 log.go:213: [info] 4 apply to 5
+2023/03/15 11:12:35.506082 log.go:128: [info] 2 append at after 6
+2023/03/15 11:12:35.506995 raft.go:704: [info] 2 leader append, last Index (6)
+2023/03/15 11:12:35.507432 raft.go:717: [info] 2 ready to commit 0
+2023/03/15 11:12:35.504295 log.go:213: [info] 3 apply to 5
+2023/03/15 11:12:35.508555 log.go:360: [info] 2 index out of range i(0), dummy(5), last(6)
+2023/03/15 11:12:35.509296 log.go:288: [info] 2 ready to commit 0, term(0), curTerm(6)
+2023/03/15 11:12:35.509715 raft.go:478: [info] 2 became Leader at term 6
+2023/03/15 11:12:35.510484 raft.go:295: [info] 2 send to 3 logterm 0, next 6
+2023/03/15 11:12:35.507073 log.go:213: [info] 5 apply to 5
+2023/03/15 11:12:35.510985 raft.go:295: [info] 2 send to 4 logterm 0, next 6
+2023/03/15 11:12:35.511823 raft.go:295: [info] 2 send to 5 logterm 0, next 6
+2023/03/15 11:12:35.512278 raft.go:295: [info] 2 send to 1 logterm 0, next 6
+2023/03/15 11:12:35.514547 log.go:225: [info] 2 stabled to 6
+2023/03/15 11:12:35.514579 raft.go:751: [info] 2 -> 4 index 5
+2023/03/15 11:12:35.515473 log.go:360: [info] 4 index out of range i(6), dummy(5), last(5)
+2023/03/15 11:12:35.515942 log.go:128: [info] 4 append at after 6
+2023/03/15 11:12:35.514587 raft.go:751: [info] 2 -> 1 index 5
+2023/03/15 11:12:35.516864 log.go:360: [info] 1 index out of range i(6), dummy(5), last(5)
+2023/03/15 11:12:35.517313 log.go:128: [info] 1 append at after 6
+2023/03/15 11:12:35.517777 raft.go:753: [info] 1 accept append from 2 [index 5, logTerm 0], lastnewi 6
+2023/03/15 11:12:35.514582 raft.go:751: [info] 2 -> 3 index 5
+2023/03/15 11:12:35.514584 raft.go:751: [info] 2 -> 5 index 5
+2023/03/15 11:12:35.518848 log.go:360: [info] 3 index out of range i(6), dummy(5), last(5)
+2023/03/15 11:12:35.519804 log.go:128: [info] 3 append at after 6
+2023/03/15 11:12:35.520406 raft.go:753: [info] 3 accept append from 2 [index 5, logTerm 0], lastnewi 6
+2023/03/15 11:12:35.516510 raft.go:753: [info] 4 accept append from 2 [index 5, logTerm 0], lastnewi 6
+2023/03/15 11:12:35.520330 log.go:225: [info] 1 stabled to 6
+2023/03/15 11:12:35.519351 log.go:360: [info] 5 index out of range i(6), dummy(5), last(5)
+2023/03/15 11:12:35.522173 log.go:128: [info] 5 append at after 6
+2023/03/15 11:12:35.522719 raft.go:753: [info] 5 accept append from 2 [index 5, logTerm 0], lastnewi 6
+2023/03/15 11:12:35.520348 raft.go:728: [info] 2 received a Append sucess, Index(6)
+2023/03/15 11:12:35.523740 raft.go:717: [info] 2 ready to commit 0
+2023/03/15 11:12:35.524000 log.go:225: [info] 4 stabled to 6
+2023/03/15 11:12:35.524320 log.go:360: [info] 2 index out of range i(0), dummy(5), last(6)
+2023/03/15 11:12:35.525056 log.go:288: [info] 2 ready to commit 0, term(0), curTerm(6)
+2023/03/15 11:12:35.525628 raft.go:728: [info] 2 received a Append sucess, Index(6)
+2023/03/15 11:12:35.522705 log.go:225: [info] 3 stabled to 6
+2023/03/15 11:12:35.525516 log.go:225: [info] 5 stabled to 6
+2023/03/15 11:12:35.526106 raft.go:717: [info] 2 ready to commit 6
+2023/03/15 11:12:35.527225 log.go:288: [info] 2 ready to commit 6, term(6), curTerm(6)
+2023/03/15 11:12:35.528189 log.go:200: [info] 2 commit to 6
+2023/03/15 11:12:35.528589 raft.go:731: [info] 2 leader commit 6
+2023/03/15 11:12:35.529008 raft.go:295: [info] 2 send to 4 logterm 0, next 6
+2023/03/15 11:12:35.529359 raft.go:295: [info] 2 send to 5 logterm 0, next 6
+2023/03/15 11:12:35.529726 raft.go:295: [info] 2 send to 1 logterm 6, next 7
+2023/03/15 11:12:35.530131 raft.go:295: [info] 2 send to 3 logterm 6, next 7
+2023/03/15 11:12:35.530567 raft.go:728: [info] 2 received a Append sucess, Index(6)
+2023/03/15 11:12:35.530951 raft.go:717: [info] 2 ready to commit 6
+2023/03/15 11:12:35.531368 log.go:288: [info] 2 ready to commit 6, term(6), curTerm(6)
+2023/03/15 11:12:35.531750 raft.go:728: [info] 2 received a Append sucess, Index(6)
+2023/03/15 11:12:35.532153 raft.go:717: [info] 2 ready to commit 6
+2023/03/15 11:12:35.532531 log.go:288: [info] 2 ready to commit 6, term(6), curTerm(6)
+2023/03/15 11:12:35.534761 raft.go:751: [info] 2 -> 5 index 5
+2023/03/15 11:12:35.535380 log.go:200: [info] 5 commit to 6
+2023/03/15 11:12:35.535906 raft.go:753: [info] 5 accept append from 2 [index 5, logTerm 0], lastnewi 6
+2023/03/15 11:12:35.536342 log.go:213: [info] 2 apply to 6
+2023/03/15 11:12:35.537075 log.go:213: [info] 2 apply to 6
+2023/03/15 11:12:35.534799 raft.go:751: [info] 2 -> 1 index 6
+2023/03/15 11:12:35.538003 log.go:200: [info] 1 commit to 6
+2023/03/15 11:12:35.534800 raft.go:751: [info] 2 -> 4 index 5
+2023/03/15 11:12:35.534803 raft.go:751: [info] 2 -> 3 index 6
+2023/03/15 11:12:35.538477 raft.go:753: [info] 1 accept append from 2 [index 6, logTerm 6], lastnewi 6
+2023/03/15 11:12:35.539505 log.go:200: [info] 3 commit to 6
+2023/03/15 11:12:35.540535 raft.go:753: [info] 3 accept append from 2 [index 6, logTerm 6], lastnewi 6
+2023/03/15 11:12:35.540185 log.go:213: [info] 5 apply to 6
+2023/03/15 11:12:35.541404 log.go:213: [info] 5 apply to 6
+2023/03/15 11:12:35.539075 log.go:200: [info] 4 commit to 6
+2023/03/15 11:12:35.543112 raft.go:753: [info] 4 accept append from 2 [index 5, logTerm 0], lastnewi 6
+2023/03/15 11:12:35.538620 raft.go:728: [info] 2 received a Append sucess, Index(6)
+2023/03/15 11:12:35.543978 raft.go:728: [info] 2 received a Append sucess, Index(6)
+2023/03/15 11:12:35.544532 raft.go:728: [info] 2 received a Append sucess, Index(6)
+2023/03/15 11:12:35.544327 log.go:213: [info] 1 apply to 6
+2023/03/15 11:12:35.545435 log.go:213: [info] 1 apply to 6
+2023/03/15 11:12:35.545488 log.go:213: [info] 3 apply to 6
+2023/03/15 11:12:35.546343 log.go:213: [info] 3 apply to 6
+2023/03/15 11:12:35.545624 raft.go:728: [info] 2 received a Append sucess, Index(6)
+2023/03/15 11:12:35.547373 log.go:213: [info] 4 apply to 6
+2023/03/15 11:12:35.547756 log.go:213: [info] 4 apply to 6
+2023/03/15 11:12:35.575866 raft.go:656: [info] 2 boardcast heartbeat
+2023/03/15 11:12:35.586702 raft.go:824: [info] 2 start to tranfer leadership to 0
+2023/03/15 11:12:35.589417 raft.go:813: [info] 2 already in progress to transfer to 0
+2023/03/15 11:12:35.589963 raft.go:813: [info] 2 already in progress to transfer to 0
+2023/03/15 11:12:35.590495 raft.go:813: [info] 2 already in progress to transfer to 0
+2023/03/15 11:12:35.589465 raft.go:559: [info] 1 received MsgTimeoutNow from 2, starts an election to get leadership
+2023/03/15 11:12:35.591569 raft.go:463: [info] 1 became Candidate at term 7
+2023/03/15 11:12:35.592148 raft.go:667: [info] 1 received vote from 1 at term 7
+2023/03/15 11:12:35.591144 raft.go:813: [info] 2 already in progress to transfer to 0
+2023/03/15 11:12:35.593186 raft.go:813: [info] 2 already in progress to transfer to 0
+2023/03/15 11:12:35.593684 raft.go:813: [info] 2 already in progress to transfer to 0
+2023/03/15 11:12:35.592712 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/15 11:12:35.594656 raft.go:425: [info] 1 send requestVote msg to 4
+2023/03/15 11:12:35.595121 raft.go:425: [info] 1 send requestVote msg to 5
+2023/03/15 11:12:35.595602 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/15 11:12:35.594292 raft.go:813: [info] 2 already in progress to transfer to 0
+2023/03/15 11:12:35.596585 raft.go:813: [info] 2 already in progress to transfer to 0
+2023/03/15 11:12:35.597064 raft.go:813: [info] 2 already in progress to transfer to 0
+2023/03/15 11:12:35.597596 raft.go:813: [info] 2 already in progress to transfer to 0
+2023/03/15 11:12:35.598044 raft.go:501: [info] 2 [term: 6] received a MsgRequestVote message with higher term from 1 [term: 7]
+2023/03/15 11:12:35.598520 raft.go:454: [info] 2 became follower at term 7
+2023/03/15 11:12:35.598981 raft.go:436: [info] 2 [last logterm: 6, index: 6, vote: 0] grant vote for 1 [logterm: 6, index: 6] at term 7
+2023/03/15 11:12:35.597928 raft.go:501: [info] 3 [term: 6] received a MsgRequestVote message with higher term from 1 [term: 7]
+2023/03/15 11:12:35.599903 raft.go:454: [info] 3 became follower at term 7
+2023/03/15 11:12:35.600362 raft.go:436: [info] 3 [last logterm: 6, index: 6, vote: 0] grant vote for 1 [logterm: 6, index: 6] at term 7
+2023/03/15 11:12:35.597900 log.go:213: [info] 1 apply to 6
+2023/03/15 11:12:35.601361 raft.go:667: [info] 1 received vote from 2 at term 7
+2023/03/15 11:12:35.597906 raft.go:501: [info] 5 [term: 6] received a MsgRequestVote message with higher term from 1 [term: 7]
+2023/03/15 11:12:35.597907 raft.go:501: [info] 4 [term: 6] received a MsgRequestVote message with higher term from 1 [term: 7]
+2023/03/15 11:12:35.602314 raft.go:454: [info] 5 became follower at term 7
+2023/03/15 11:12:35.603097 raft.go:436: [info] 5 [last logterm: 6, index: 6, vote: 0] grant vote for 1 [logterm: 6, index: 6] at term 7
+2023/03/15 11:12:35.602661 raft.go:454: [info] 4 became follower at term 7
+2023/03/15 11:12:35.601172 log.go:213: [info] 2 apply to 6
+2023/03/15 11:12:35.604059 raft.go:436: [info] 4 [last logterm: 6, index: 6, vote: 0] grant vote for 1 [logterm: 6, index: 6] at term 7
+2023/03/15 11:12:35.602542 log.go:213: [info] 3 apply to 6
+2023/03/15 11:12:35.602546 raft.go:667: [info] 1 received vote from 3 at term 7
+2023/03/15 11:12:35.605820 log.go:128: [info] 1 append at after 7
+2023/03/15 11:12:35.606233 raft.go:704: [info] 1 leader append, last Index (7)
+2023/03/15 11:12:35.605226 log.go:213: [info] 5 apply to 6
+2023/03/15 11:12:35.606678 log.go:213: [info] 4 apply to 6
+2023/03/15 11:12:35.606685 raft.go:717: [info] 1 ready to commit 0
+2023/03/15 11:12:35.607819 log.go:360: [info] 1 index out of range i(0), dummy(5), last(7)
+2023/03/15 11:12:35.608283 log.go:288: [info] 1 ready to commit 0, term(0), curTerm(7)
+2023/03/15 11:12:35.608665 raft.go:478: [info] 1 became Leader at term 7
+2023/03/15 11:12:35.609095 raft.go:295: [info] 1 send to 2 logterm 6, next 7
+2023/03/15 11:12:35.609511 raft.go:295: [info] 1 send to 3 logterm 6, next 7
+2023/03/15 11:12:35.609979 raft.go:295: [info] 1 send to 4 logterm 6, next 7
+2023/03/15 11:12:35.610416 raft.go:295: [info] 1 send to 5 logterm 6, next 7
+2023/03/15 11:12:35.612588 raft.go:751: [info] 1 -> 2 index 6
+2023/03/15 11:12:35.613149 log.go:360: [info] 2 index out of range i(7), dummy(5), last(6)
+2023/03/15 11:12:35.613646 log.go:128: [info] 2 append at after 7
+2023/03/15 11:12:35.612588 log.go:225: [info] 1 stabled to 7
+2023/03/15 11:12:35.614103 raft.go:753: [info] 2 accept append from 1 [index 6, logTerm 6], lastnewi 7
+2023/03/15 11:12:35.612593 raft.go:751: [info] 1 -> 5 index 6
+2023/03/15 11:12:35.615612 log.go:360: [info] 5 index out of range i(7), dummy(5), last(6)
+2023/03/15 11:12:35.612599 raft.go:751: [info] 1 -> 4 index 6
+2023/03/15 11:12:35.612595 raft.go:751: [info] 1 -> 3 index 6
+2023/03/15 11:12:35.616039 log.go:128: [info] 5 append at after 7
+2023/03/15 11:12:35.617224 raft.go:753: [info] 5 accept append from 1 [index 6, logTerm 6], lastnewi 7
+2023/03/15 11:12:35.616851 log.go:360: [info] 3 index out of range i(7), dummy(5), last(6)
+2023/03/15 11:12:35.615254 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.618128 log.go:128: [info] 3 append at after 7
+2023/03/15 11:12:35.618830 raft.go:753: [info] 3 accept append from 1 [index 6, logTerm 6], lastnewi 7
+2023/03/15 11:12:35.618524 raft.go:728: [info] 1 received a Append sucess, Index(7)
+2023/03/15 11:12:35.616715 log.go:225: [info] 2 stabled to 7
+2023/03/15 11:12:35.616460 log.go:360: [info] 4 index out of range i(7), dummy(5), last(6)
+2023/03/15 11:12:35.619733 raft.go:717: [info] 1 ready to commit 0
+2023/03/15 11:12:35.620851 log.go:360: [info] 1 index out of range i(0), dummy(5), last(7)
+2023/03/15 11:12:35.621222 log.go:288: [info] 1 ready to commit 0, term(0), curTerm(7)
+2023/03/15 11:12:35.621584 raft.go:728: [info] 1 received a Append sucess, Index(7)
+2023/03/15 11:12:35.619145 log.go:225: [info] 5 stabled to 7
+2023/03/15 11:12:35.621981 raft.go:717: [info] 1 ready to commit 7
+2023/03/15 11:12:35.622722 log.go:288: [info] 1 ready to commit 7, term(7), curTerm(7)
+2023/03/15 11:12:35.623072 log.go:200: [info] 1 commit to 7
+2023/03/15 11:12:35.623430 raft.go:731: [info] 1 leader commit 7
+2023/03/15 11:12:35.620682 log.go:225: [info] 3 stabled to 7
+2023/03/15 11:12:35.620484 log.go:128: [info] 4 append at after 7
+2023/03/15 11:12:35.623788 raft.go:295: [info] 1 send to 2 logterm 7, next 8
+2023/03/15 11:12:35.624816 raft.go:295: [info] 1 send to 3 logterm 6, next 7
+2023/03/15 11:12:35.625152 raft.go:295: [info] 1 send to 4 logterm 6, next 7
+2023/03/15 11:12:35.625519 raft.go:295: [info] 1 send to 5 logterm 7, next 8
+2023/03/15 11:12:35.624478 raft.go:753: [info] 4 accept append from 1 [index 6, logTerm 6], lastnewi 7
+2023/03/15 11:12:35.625893 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.626763 raft.go:728: [info] 1 received a Append sucess, Index(7)
+2023/03/15 11:12:35.627167 raft.go:717: [info] 1 ready to commit 7
+2023/03/15 11:12:35.627560 log.go:288: [info] 1 ready to commit 7, term(7), curTerm(7)
+2023/03/15 11:12:35.628083 log.go:225: [info] 4 stabled to 7
+2023/03/15 11:12:35.629766 raft.go:751: [info] 1 -> 2 index 7
+2023/03/15 11:12:35.630231 log.go:200: [info] 2 commit to 7
+2023/03/15 11:12:35.630654 raft.go:753: [info] 2 accept append from 1 [index 7, logTerm 7], lastnewi 7
+2023/03/15 11:12:35.629831 raft.go:751: [info] 1 -> 4 index 6
+2023/03/15 11:12:35.631496 log.go:213: [info] 1 apply to 7
+2023/03/15 11:12:35.631986 log.go:213: [info] 1 apply to 7
+2023/03/15 11:12:35.632407 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.632813 raft.go:728: [info] 1 received a Append sucess, Index(7)
+2023/03/15 11:12:35.629833 raft.go:751: [info] 1 -> 3 index 6
+2023/03/15 11:12:35.629860 raft.go:751: [info] 1 -> 5 index 7
+2023/03/15 11:12:35.633324 raft.go:717: [info] 1 ready to commit 7
+2023/03/15 11:12:35.634487 log.go:288: [info] 1 ready to commit 7, term(7), curTerm(7)
+2023/03/15 11:12:35.634930 raft.go:728: [info] 1 received a Append sucess, Index(7)
+2023/03/15 11:12:35.634089 log.go:200: [info] 5 commit to 7
+2023/03/15 11:12:35.631634 log.go:200: [info] 4 commit to 7
+2023/03/15 11:12:35.635829 raft.go:753: [info] 5 accept append from 1 [index 7, logTerm 7], lastnewi 7
+2023/03/15 11:12:35.633679 log.go:200: [info] 3 commit to 7
+2023/03/15 11:12:35.637155 raft.go:753: [info] 3 accept append from 1 [index 6, logTerm 6], lastnewi 7
+2023/03/15 11:12:35.636233 raft.go:753: [info] 4 accept append from 1 [index 6, logTerm 6], lastnewi 7
+2023/03/15 11:12:35.634652 log.go:213: [info] 2 apply to 7
+2023/03/15 11:12:35.638582 log.go:213: [info] 2 apply to 7
+2023/03/15 11:12:35.638578 raft.go:728: [info] 1 received a Append sucess, Index(7)
+2023/03/15 11:12:35.639284 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.639756 raft.go:728: [info] 1 received a Append sucess, Index(7)
+2023/03/15 11:12:35.640185 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.640689 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.641060 raft.go:728: [info] 1 received a Append sucess, Index(7)
+2023/03/15 11:12:35.641438 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.641882 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.642269 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.642627 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.643047 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.643440 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.644011 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.644470 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.643120 log.go:213: [info] 4 apply to 7
+2023/03/15 11:12:35.645242 log.go:213: [info] 4 apply to 7
+2023/03/15 11:12:35.643116 log.go:213: [info] 3 apply to 7
+2023/03/15 11:12:35.645940 log.go:213: [info] 3 apply to 7
+2023/03/15 11:12:35.641889 log.go:213: [info] 5 apply to 7
+2023/03/15 11:12:35.646642 log.go:213: [info] 5 apply to 7
+2023/03/15 11:12:35.644908 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.647370 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.647764 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.648137 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.648528 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.648888 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.649308 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.649653 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.650142 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.650526 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.650964 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.651324 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.651714 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.652112 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.652531 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.652919 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.653377 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.653780 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.654209 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.654605 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.655051 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.655448 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.655881 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.656276 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.656710 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.657096 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.657524 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.657967 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.658425 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.658812 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.659242 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.659645 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.660115 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.660582 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.661059 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.661447 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.661883 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.662270 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.662734 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.663135 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.663574 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.663977 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.664402 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.664786 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.665250 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.665663 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.666082 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.666480 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.666932 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.667338 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.667734 raft.go:656: [info] 1 boardcast heartbeat
+2023/03/15 11:12:35.670254 raft.go:821: [info] 1 is already leader. ignore transfer leader to self
+2023/03/15 11:12:35.768438 raft.go:656: [info] 1 boardcast heartbeat
+2023/03/15 11:12:35.775337 log.go:128: [info] 1 append at after 8
+2023/03/15 11:12:35.776311 raft.go:704: [info] 1 leader append, last Index (8)
+2023/03/15 11:12:35.777180 raft.go:717: [info] 1 ready to commit 7
+2023/03/15 11:12:35.778004 log.go:288: [info] 1 ready to commit 7, term(7), curTerm(7)
+2023/03/15 11:12:35.778892 raft.go:295: [info] 1 send to 3 logterm 7, next 8
+2023/03/15 11:12:35.779908 raft.go:295: [info] 1 send to 4 logterm 7, next 8
+2023/03/15 11:12:35.780944 raft.go:295: [info] 1 send to 5 logterm 7, next 8
+2023/03/15 11:12:35.781908 raft.go:295: [info] 1 send to 2 logterm 7, next 8
+2023/03/15 11:12:35.782918 raft.go:631: [info] 1 no progress available for 0, maybe removed, msgType(MsgPropose)
+2023/03/15 11:12:35.786497 log.go:225: [info] 1 stabled to 8
+2023/03/15 11:12:35.787488 raft.go:295: [info] 1 send to 2 logterm 7, next 8
+2023/03/15 11:12:35.786528 raft.go:751: [info] 1 -> 2 index 7
+2023/03/15 11:12:35.789486 log.go:360: [info] 2 index out of range i(8), dummy(5), last(7)
+2023/03/15 11:12:35.790475 log.go:128: [info] 2 append at after 8
+2023/03/15 11:12:35.786511 raft.go:751: [info] 1 -> 4 index 7
+2023/03/15 11:12:35.786516 raft.go:751: [info] 1 -> 3 index 7
+2023/03/15 11:12:35.786521 raft.go:751: [info] 1 -> 5 index 7
+2023/03/15 11:12:35.788632 raft.go:295: [info] 1 send to 3 logterm 7, next 8
+2023/03/15 11:12:35.791637 raft.go:753: [info] 2 accept append from 1 [index 7, logTerm 7], lastnewi 8
+2023/03/15 11:12:35.794643 log.go:360: [info] 5 index out of range i(8), dummy(5), last(7)
+2023/03/15 11:12:35.792635 log.go:360: [info] 4 index out of range i(8), dummy(5), last(7)
+2023/03/15 11:12:35.793631 log.go:360: [info] 3 index out of range i(8), dummy(5), last(7)
+2023/03/15 11:12:35.798671 log.go:128: [info] 4 append at after 8
+2023/03/15 11:12:35.800642 raft.go:753: [info] 4 accept append from 1 [index 7, logTerm 7], lastnewi 8
+2023/03/15 11:12:35.797601 log.go:128: [info] 5 append at after 8
+2023/03/15 11:12:35.795626 raft.go:295: [info] 1 send to 4 logterm 7, next 8
+2023/03/15 11:12:35.799682 log.go:128: [info] 3 append at after 8
+2023/03/15 11:12:35.798985 log.go:225: [info] 2 stabled to 8
+2023/03/15 11:12:35.804742 raft.go:753: [info] 3 accept append from 1 [index 7, logTerm 7], lastnewi 8
+2023/03/15 11:12:35.802794 raft.go:753: [info] 5 accept append from 1 [index 7, logTerm 7], lastnewi 8
+2023/03/15 11:12:35.803822 raft.go:295: [info] 1 send to 5 logterm 7, next 8
+2023/03/15 11:12:35.804103 log.go:225: [info] 4 stabled to 8
+2023/03/15 11:12:35.809085 log.go:225: [info] 3 stabled to 8
+2023/03/15 11:12:35.810816 log.go:225: [info] 5 stabled to 8
+2023/03/15 11:12:35.811899 raft.go:728: [info] 1 received a Append sucess, Index(8)
+2023/03/15 11:12:35.812946 raft.go:717: [info] 1 ready to commit 7
+2023/03/15 11:12:35.811938 raft.go:751: [info] 1 -> 5 index 7
+2023/03/15 11:12:35.814855 raft.go:753: [info] 5 accept append from 1 [index 7, logTerm 7], lastnewi 8
+2023/03/15 11:12:35.811924 raft.go:751: [info] 1 -> 3 index 7
+2023/03/15 11:12:35.817135 raft.go:753: [info] 3 accept append from 1 [index 7, logTerm 7], lastnewi 8
+2023/03/15 11:12:35.811928 raft.go:751: [info] 1 -> 2 index 7
+2023/03/15 11:12:35.811933 raft.go:751: [info] 1 -> 4 index 7
+2023/03/15 11:12:35.814056 log.go:288: [info] 1 ready to commit 7, term(7), curTerm(7)
+2023/03/15 11:12:35.820994 raft.go:753: [info] 4 accept append from 1 [index 7, logTerm 7], lastnewi 8
+2023/03/15 11:12:35.819955 raft.go:753: [info] 2 accept append from 1 [index 7, logTerm 7], lastnewi 8
+2023/03/15 11:12:35.821900 raft.go:728: [info] 1 received a Append sucess, Index(8)
+2023/03/15 11:12:35.825039 raft.go:717: [info] 1 ready to commit 8
+2023/03/15 11:12:35.826049 log.go:288: [info] 1 ready to commit 8, term(7), curTerm(7)
+2023/03/15 11:12:35.827011 log.go:200: [info] 1 commit to 8
+2023/03/15 11:12:35.827881 raft.go:731: [info] 1 leader commit 8
+2023/03/15 11:12:35.828782 raft.go:295: [info] 1 send to 2 logterm 7, next 9
+2023/03/15 11:12:35.829766 raft.go:295: [info] 1 send to 3 logterm 7, next 8
+2023/03/15 11:12:35.830733 raft.go:295: [info] 1 send to 4 logterm 7, next 9
+2023/03/15 11:12:35.831700 raft.go:295: [info] 1 send to 5 logterm 7, next 8
+2023/03/15 11:12:35.832642 raft.go:728: [info] 1 received a Append sucess, Index(8)
+2023/03/15 11:12:35.833595 raft.go:717: [info] 1 ready to commit 8
+2023/03/15 11:12:35.834535 log.go:288: [info] 1 ready to commit 8, term(7), curTerm(7)
+2023/03/15 11:12:35.835451 raft.go:728: [info] 1 received a Append sucess, Index(8)
+2023/03/15 11:12:35.836389 raft.go:717: [info] 1 ready to commit 8
+2023/03/15 11:12:35.837307 log.go:288: [info] 1 ready to commit 8, term(7), curTerm(7)
+2023/03/15 11:12:35.840643 raft.go:751: [info] 1 -> 3 index 7
+2023/03/15 11:12:35.841657 log.go:200: [info] 3 commit to 8
+2023/03/15 11:12:35.840771 raft.go:751: [info] 1 -> 4 index 8
+2023/03/15 11:12:35.843730 log.go:200: [info] 4 commit to 8
+2023/03/15 11:12:35.840707 raft.go:751: [info] 1 -> 2 index 8
+2023/03/15 11:12:35.840730 peer_msg_handler.go:198: [info] [region 1] 1 region(1) remove node (2), peers([id:3 store_id:3  id:4 store_id:4  id:5 store_id:5  id:1 store_id:1 ])
+2023/03/15 11:12:35.840737 raft.go:751: [info] 1 -> 5 index 7
+2023/03/15 11:12:35.842823 raft.go:753: [info] 3 accept append from 1 [index 7, logTerm 7], lastnewi 8
+2023/03/15 11:12:35.844802 raft.go:753: [info] 4 accept append from 1 [index 8, logTerm 7], lastnewi 8
+2023/03/15 11:12:35.848107 log.go:200: [info] 5 commit to 8
+2023/03/15 11:12:35.845907 log.go:200: [info] 2 commit to 8
+2023/03/15 11:12:35.851250 raft.go:753: [info] 5 accept append from 1 [index 7, logTerm 7], lastnewi 8
+2023/03/15 11:12:35.852259 raft.go:753: [info] 2 accept append from 1 [index 8, logTerm 7], lastnewi 8
+2023/03/15 11:12:35.853319 peer_msg_handler.go:198: [info] [region 1] 4 region(1) remove node (2), peers([id:3 store_id:3  id:4 store_id:4  id:5 store_id:5  id:1 store_id:1 ])
+2023/03/15 11:12:35.849298 raft.go:857: [info] raft remove node 2
+2023/03/15 11:12:35.856313 raft.go:717: [info] 1 ready to commit 8
+2023/03/15 11:12:35.857300 log.go:288: [info] 1 ready to commit 8, term(7), curTerm(7)
+2023/03/15 11:12:35.851492 peer_msg_handler.go:198: [info] [region 1] 3 region(1) remove node (2), peers([id:3 store_id:3  id:4 store_id:4  id:5 store_id:5  id:1 store_id:1 ])
+2023/03/15 11:12:35.858425 log.go:213: [info] 1 apply to 8
+2023/03/15 11:12:35.860314 log.go:213: [info] 1 apply to 8
+2023/03/15 11:12:35.861343 raft.go:728: [info] 1 received a Append sucess, Index(8)
+2023/03/15 11:12:35.855572 peer_msg_handler.go:198: [info] [region 1] 5 region(1) remove node (2), peers([id:3 store_id:3  id:4 store_id:4  id:5 store_id:5  id:1 store_id:1 ])
+2023/03/15 11:12:35.857030 peer_msg_handler.go:198: [info] [region 1] 2 region(1) remove node (2), peers([id:3 store_id:3  id:4 store_id:4  id:5 store_id:5  id:1 store_id:1 ])
+2023/03/15 11:12:35.862470 raft.go:728: [info] 1 received a Append sucess, Index(8)
+2023/03/15 11:12:35.858438 raft.go:857: [info] raft remove node 2
+2023/03/15 11:12:35.866426 log.go:213: [info] 4 apply to 8
+2023/03/15 11:12:35.861774 raft.go:857: [info] raft remove node 2
+2023/03/15 11:12:35.867429 log.go:213: [info] 4 apply to 8
+2023/03/15 11:12:35.865488 raft.go:728: [info] 1 received a Append sucess, Index(8)
+2023/03/15 11:12:35.870426 peer_msg_handler.go:524: [info] [region 1] raft message MsgAppendResponse is stale, current conf_ver:2 version:1  ignore it
+2023/03/15 11:12:35.865503 raft.go:857: [info] raft remove node 2
+2023/03/15 11:12:35.867425 raft.go:857: [info] raft remove node 2
+2023/03/15 11:12:35.868572 log.go:213: [info] 3 apply to 8
+2023/03/15 11:12:35.873508 peer_msg_handler.go:612: [info] [region 1] 2 starts destroy
+2023/03/15 11:12:35.875416 peer.go:203: [info] [region 1] 2 begin to destroy
+2023/03/15 11:12:35.876450 peer_storage.go:298: [info] [region 1] clear peer 1 meta key 1 apply key 1 raft key and 3 raft logs, takes 16.8µs
+2023/03/15 11:12:35.872520 log.go:213: [info] 5 apply to 8
+2023/03/15 11:12:35.871529 raft.go:728: [info] 1 received a Append sucess, Index(8)
+2023/03/15 11:12:35.874535 log.go:213: [info] 3 apply to 8
+2023/03/15 11:12:35.879560 raft.go:728: [info] 1 received a Append sucess, Index(8)
+2023/03/15 11:12:35.881406 raft.go:728: [info] 1 received a Append sucess, Index(8)
+2023/03/15 11:12:35.882411 peer_msg_handler.go:524: [info] [region 1] raft message MsgAppendResponse is stale, current conf_ver:2 version:1  ignore it
+2023/03/15 11:12:35.878433 log.go:213: [info] 5 apply to 8
+2023/03/15 11:12:35.883461 raft.go:656: [info] 1 boardcast heartbeat
+2023/03/15 11:12:35.882234 peer.go:231: [info] [region 1] 2 destroy itself, takes 6.821701ms
+2023/03/15 11:12:35.886539 router.go:53: [info] in router close
+2023/03/15 11:12:35.882336 region_task.go:139: [info] succeed in deleting data in range. [regionId: 1, startKey: , endKey: ]
+2023/03/15 11:12:35.887599 router.go:58: [info] [region 1] 2 set closed
+2023/03/15 11:12:35.889334 log.go:213: [info] 2 apply to 8
+2023/03/15 11:12:35.890308 log.go:213: [info] 2 apply to 8
+2023/03/15 11:12:35.967917 raft.go:656: [info] 1 boardcast heartbeat
+2023/03/15 11:12:35.971868 log.go:128: [info] 1 append at after 9
+2023/03/15 11:12:35.972897 raft.go:704: [info] 1 leader append, last Index (9)
+2023/03/15 11:12:35.973863 raft.go:717: [info] 1 ready to commit 8
+2023/03/15 11:12:35.974916 log.go:288: [info] 1 ready to commit 8, term(7), curTerm(7)
+2023/03/15 11:12:35.975879 raft.go:295: [info] 1 send to 5 logterm 7, next 9
+2023/03/15 11:12:35.976857 raft.go:295: [info] 1 send to 3 logterm 7, next 9
+2023/03/15 11:12:35.977804 raft.go:295: [info] 1 send to 4 logterm 7, next 9
+2023/03/15 11:12:35.978837 raft.go:631: [info] 1 no progress available for 0, maybe removed, msgType(MsgPropose)
+2023/03/15 11:12:35.982159 log.go:225: [info] 1 stabled to 9
+2023/03/15 11:12:35.983145 raft.go:295: [info] 1 send to 3 logterm 7, next 9
+2023/03/15 11:12:35.982236 raft.go:751: [info] 1 -> 4 index 8
+2023/03/15 11:12:35.985208 log.go:360: [info] 4 index out of range i(9), dummy(5), last(8)
+2023/03/15 11:12:35.982229 raft.go:751: [info] 1 -> 3 index 8
+2023/03/15 11:12:35.982232 raft.go:751: [info] 1 -> 5 index 8
+2023/03/15 11:12:35.987353 log.go:360: [info] 3 index out of range i(9), dummy(5), last(8)
+2023/03/15 11:12:35.989244 log.go:128: [info] 3 append at after 9
+2023/03/15 11:12:35.986296 log.go:128: [info] 4 append at after 9
+2023/03/15 11:12:35.984283 raft.go:295: [info] 1 send to 5 logterm 7, next 9
+2023/03/15 11:12:35.988313 log.go:360: [info] 5 index out of range i(9), dummy(5), last(8)
+2023/03/15 11:12:35.992380 raft.go:295: [info] 1 send to 4 logterm 7, next 9
+2023/03/15 11:12:35.993439 log.go:128: [info] 5 append at after 9
+2023/03/15 11:12:35.991417 raft.go:753: [info] 4 accept append from 1 [index 8, logTerm 7], lastnewi 9
+2023/03/15 11:12:35.990370 raft.go:753: [info] 3 accept append from 1 [index 8, logTerm 7], lastnewi 9
+2023/03/15 11:12:35.995656 raft.go:753: [info] 5 accept append from 1 [index 8, logTerm 7], lastnewi 9
+2023/03/15 11:12:35.999149 log.go:225: [info] 4 stabled to 9
+2023/03/15 11:12:36.000143 raft.go:751: [info] 1 -> 4 index 8
+2023/03/15 11:12:36.000717 log.go:225: [info] 3 stabled to 9
+2023/03/15 11:12:36.002097 raft.go:751: [info] 1 -> 3 index 8
+2023/03/15 11:12:36.003088 raft.go:753: [info] 3 accept append from 1 [index 8, logTerm 7], lastnewi 9
+2023/03/15 11:12:35.999230 raft.go:728: [info] 1 received a Append sucess, Index(9)
+2023/03/15 11:12:36.001230 raft.go:753: [info] 4 accept append from 1 [index 8, logTerm 7], lastnewi 9
+2023/03/15 11:12:36.005207 raft.go:717: [info] 1 ready to commit 8
+2023/03/15 11:12:36.000771 log.go:225: [info] 5 stabled to 9
+2023/03/15 11:12:36.008191 raft.go:751: [info] 1 -> 5 index 8
+2023/03/15 11:12:36.009203 raft.go:753: [info] 5 accept append from 1 [index 8, logTerm 7], lastnewi 9
+2023/03/15 11:12:36.007259 log.go:288: [info] 1 ready to commit 8, term(7), curTerm(7)
+2023/03/15 11:12:36.011179 raft.go:728: [info] 1 received a Append sucess, Index(9)
+2023/03/15 11:12:36.012192 raft.go:717: [info] 1 ready to commit 9
+2023/03/15 11:12:36.013151 log.go:288: [info] 1 ready to commit 9, term(7), curTerm(7)
+2023/03/15 11:12:36.014153 log.go:200: [info] 1 commit to 9
+2023/03/15 11:12:36.015083 raft.go:731: [info] 1 leader commit 9
+2023/03/15 11:12:36.016074 raft.go:295: [info] 1 send to 3 logterm 7, next 10
+2023/03/15 11:12:36.016976 raft.go:295: [info] 1 send to 4 logterm 7, next 10
+2023/03/15 11:12:36.017989 raft.go:295: [info] 1 send to 5 logterm 7, next 9
+2023/03/15 11:12:36.018956 raft.go:728: [info] 1 received a Append sucess, Index(9)
+2023/03/15 11:12:36.019958 raft.go:717: [info] 1 ready to commit 9
+2023/03/15 11:12:36.020961 log.go:288: [info] 1 ready to commit 9, term(7), curTerm(7)
+2023/03/15 11:12:36.021993 raft.go:728: [info] 1 received a Append sucess, Index(9)
+2023/03/15 11:12:36.022937 raft.go:728: [info] 1 received a Append sucess, Index(9)
+2023/03/15 11:12:36.026368 peer_msg_handler.go:198: [info] [region 1] 1 region(1) remove node (3), peers([id:4 store_id:4  id:5 store_id:5  id:1 store_id:1 ])
+2023/03/15 11:12:36.026398 raft.go:751: [info] 1 -> 4 index 9
+2023/03/15 11:12:36.026406 raft.go:751: [info] 1 -> 3 index 9
+2023/03/15 11:12:36.029348 log.go:200: [info] 3 commit to 9
+2023/03/15 11:12:36.030259 raft.go:753: [info] 3 accept append from 1 [index 9, logTerm 7], lastnewi 9
+2023/03/15 11:12:36.026407 raft.go:751: [info] 1 -> 5 index 8
+2023/03/15 11:12:36.028601 log.go:200: [info] 4 commit to 9
+2023/03/15 11:12:36.033125 raft.go:753: [info] 4 accept append from 1 [index 9, logTerm 7], lastnewi 9
+2023/03/15 11:12:36.032252 log.go:200: [info] 5 commit to 9
+2023/03/15 11:12:36.029694 raft.go:857: [info] raft remove node 3
+2023/03/15 11:12:36.035355 raft.go:753: [info] 5 accept append from 1 [index 8, logTerm 7], lastnewi 9
+2023/03/15 11:12:36.036537 raft.go:717: [info] 1 ready to commit 9
+2023/03/15 11:12:36.033764 peer_msg_handler.go:198: [info] [region 1] 3 region(1) remove node (3), peers([id:4 store_id:4  id:5 store_id:5  id:1 store_id:1 ])
+2023/03/15 11:12:36.038589 log.go:288: [info] 1 ready to commit 9, term(7), curTerm(7)
+2023/03/15 11:12:36.036538 peer_msg_handler.go:198: [info] [region 1] 4 region(1) remove node (3), peers([id:4 store_id:4  id:5 store_id:5  id:1 store_id:1 ])
+2023/03/15 11:12:36.040513 log.go:213: [info] 1 apply to 9
+2023/03/15 11:12:36.042515 log.go:213: [info] 1 apply to 9
+2023/03/15 11:12:36.043434 raft.go:728: [info] 1 received a Append sucess, Index(9)
+2023/03/15 11:12:36.039689 peer_msg_handler.go:198: [info] [region 1] 5 region(1) remove node (3), peers([id:4 store_id:4  id:5 store_id:5  id:1 store_id:1 ])
+2023/03/15 11:12:36.044650 peer_msg_handler.go:524: [info] [region 1] raft message MsgAppendResponse is stale, current conf_ver:3 version:1  ignore it
+2023/03/15 11:12:36.046495 raft.go:728: [info] 1 received a Append sucess, Index(9)
+2023/03/15 11:12:36.041680 raft.go:857: [info] raft remove node 3
+2023/03/15 11:12:36.043687 raft.go:857: [info] raft remove node 3
+2023/03/15 11:12:36.048550 peer_msg_handler.go:612: [info] [region 1] 3 starts destroy
+2023/03/15 11:12:36.050322 peer.go:203: [info] [region 1] 3 begin to destroy
+2023/03/15 11:12:36.051335 peer_storage.go:298: [info] [region 1] clear peer 1 meta key 1 apply key 1 raft key and 4 raft logs, takes 17.2µs
+2023/03/15 11:12:36.047648 raft.go:728: [info] 1 received a Append sucess, Index(9)
+2023/03/15 11:12:36.048007 raft.go:857: [info] raft remove node 3
+2023/03/15 11:12:36.054372 log.go:213: [info] 5 apply to 9
+2023/03/15 11:12:36.055344 log.go:213: [info] 5 apply to 9
+2023/03/15 11:12:36.049509 log.go:213: [info] 4 apply to 9
+2023/03/15 11:12:36.057451 log.go:213: [info] 4 apply to 9
+2023/03/15 11:12:36.057178 peer.go:231: [info] [region 1] 3 destroy itself, takes 6.8518ms
+2023/03/15 11:12:36.059477 router.go:53: [info] in router close
+2023/03/15 11:12:36.060581 router.go:58: [info] [region 1] 3 set closed
+2023/03/15 11:12:36.057257 region_task.go:139: [info] succeed in deleting data in range. [regionId: 1, startKey: , endKey: ]
+2023/03/15 11:12:36.061679 log.go:213: [info] 3 apply to 9
+2023/03/15 11:12:36.063497 log.go:213: [info] 3 apply to 9
+2023/03/15 11:12:36.067820 raft.go:656: [info] 1 boardcast heartbeat
+2023/03/15 11:12:36.168007 raft.go:656: [info] 1 boardcast heartbeat
+2023/03/15 11:12:36.177118 log.go:128: [info] 1 append at after 10
+2023/03/15 11:12:36.179013 raft.go:704: [info] 1 leader append, last Index (10)
+2023/03/15 11:12:36.180789 raft.go:717: [info] 1 ready to commit 9
+2023/03/15 11:12:36.182646 log.go:288: [info] 1 ready to commit 9, term(7), curTerm(7)
+2023/03/15 11:12:36.184422 raft.go:295: [info] 1 send to 5 logterm 7, next 10
+2023/03/15 11:12:36.186366 raft.go:295: [info] 1 send to 4 logterm 7, next 10
+2023/03/15 11:12:36.188046 raft.go:631: [info] 1 no progress available for 0, maybe removed, msgType(MsgPropose)
+2023/03/15 11:12:36.193542 log.go:225: [info] 1 stabled to 10
+2023/03/15 11:12:36.195328 raft.go:295: [info] 1 send to 4 logterm 7, next 10
+2023/03/15 11:12:36.193557 raft.go:751: [info] 1 -> 5 index 9
+2023/03/15 11:12:36.197267 raft.go:295: [info] 1 send to 5 logterm 7, next 10
+2023/03/15 11:12:36.198824 log.go:360: [info] 5 index out of range i(10), dummy(5), last(9)
+2023/03/15 11:12:36.193586 raft.go:751: [info] 1 -> 4 index 9
+2023/03/15 11:12:36.202813 log.go:360: [info] 4 index out of range i(10), dummy(5), last(9)
+2023/03/15 11:12:36.201657 log.go:128: [info] 5 append at after 10
+2023/03/15 11:12:36.204979 raft.go:753: [info] 5 accept append from 1 [index 9, logTerm 7], lastnewi 10
+2023/03/15 11:12:36.204038 log.go:128: [info] 4 append at after 10
+2023/03/15 11:12:36.206968 raft.go:753: [info] 4 accept append from 1 [index 9, logTerm 7], lastnewi 10
+2023/03/15 11:12:36.208518 log.go:225: [info] 5 stabled to 10
+2023/03/15 11:12:36.209535 raft.go:751: [info] 1 -> 5 index 9
+2023/03/15 11:12:36.210520 log.go:225: [info] 4 stabled to 10
+2023/03/15 11:12:36.211546 raft.go:751: [info] 1 -> 4 index 9
+2023/03/15 11:12:36.210526 raft.go:753: [info] 5 accept append from 1 [index 9, logTerm 7], lastnewi 10
+2023/03/15 11:12:36.208577 raft.go:728: [info] 1 received a Append sucess, Index(10)
+2023/03/15 11:12:36.214627 raft.go:717: [info] 1 ready to commit 10
+2023/03/15 11:12:36.215653 log.go:288: [info] 1 ready to commit 10, term(7), curTerm(7)
+2023/03/15 11:12:36.216572 log.go:200: [info] 1 commit to 10
+2023/03/15 11:12:36.212733 raft.go:753: [info] 4 accept append from 1 [index 9, logTerm 7], lastnewi 10
+2023/03/15 11:12:36.217708 raft.go:731: [info] 1 leader commit 10
+2023/03/15 11:12:36.219613 raft.go:295: [info] 1 send to 4 logterm 7, next 10
+2023/03/15 11:12:36.220558 raft.go:295: [info] 1 send to 5 logterm 7, next 11
+2023/03/15 11:12:36.223768 peer_msg_handler.go:198: [info] [region 1] 1 region(1) remove node (4), peers([id:5 store_id:5  id:1 store_id:1 ])
+2023/03/15 11:12:36.223848 raft.go:751: [info] 1 -> 4 index 9
+2023/03/15 11:12:36.223856 raft.go:751: [info] 1 -> 5 index 10
+2023/03/15 11:12:36.226335 log.go:200: [info] 5 commit to 10
+2023/03/15 11:12:36.227082 raft.go:753: [info] 5 accept append from 1 [index 10, logTerm 7], lastnewi 10
+2023/03/15 11:12:36.226947 raft.go:857: [info] raft remove node 4
+2023/03/15 11:12:36.228533 raft.go:717: [info] 1 ready to commit 10
+2023/03/15 11:12:36.229177 log.go:288: [info] 1 ready to commit 10, term(7), curTerm(7)
+2023/03/15 11:12:36.225707 log.go:200: [info] 4 commit to 10
+2023/03/15 11:12:36.230553 raft.go:753: [info] 4 accept append from 1 [index 9, logTerm 7], lastnewi 10
+2023/03/15 11:12:36.229956 log.go:213: [info] 1 apply to 10
+2023/03/15 11:12:36.229985 peer_msg_handler.go:198: [info] [region 1] 5 region(1) remove node (4), peers([id:5 store_id:5  id:1 store_id:1 ])
+2023/03/15 11:12:36.232087 log.go:213: [info] 1 apply to 10
+2023/03/15 11:12:36.233422 peer_msg_handler.go:524: [info] [region 1] raft message MsgAppendResponse is stale, current conf_ver:4 version:1  ignore it
+2023/03/15 11:12:36.234095 raft.go:728: [info] 1 received a Append sucess, Index(10)
+2023/03/15 11:12:36.234678 peer_msg_handler.go:524: [info] [region 1] raft message MsgAppendResponse is stale, current conf_ver:4 version:1  ignore it
+2023/03/15 11:12:36.234601 raft.go:857: [info] raft remove node 4
+2023/03/15 11:12:36.235874 log.go:213: [info] 5 apply to 10
+2023/03/15 11:12:36.236461 log.go:213: [info] 5 apply to 10
+2023/03/15 11:12:36.233194 peer_msg_handler.go:198: [info] [region 1] 4 region(1) remove node (4), peers([id:5 store_id:5  id:1 store_id:1 ])
+2023/03/15 11:12:36.235366 raft.go:728: [info] 1 received a Append sucess, Index(10)
+2023/03/15 11:12:36.237894 peer_msg_handler.go:524: [info] [region 1] raft message MsgAppendResponse is stale, current conf_ver:4 version:1  ignore it
+2023/03/15 11:12:36.239217 raft.go:857: [info] raft remove node 4
+2023/03/15 11:12:36.239643 peer_msg_handler.go:612: [info] [region 1] 4 starts destroy
+2023/03/15 11:12:36.240092 peer.go:203: [info] [region 1] 4 begin to destroy
+2023/03/15 11:12:36.240525 peer_storage.go:298: [info] [region 1] clear peer 1 meta key 1 apply key 1 raft key and 5 raft logs, takes 7.5µs
+2023/03/15 11:12:36.244461 peer.go:231: [info] [region 1] 4 destroy itself, takes 4.367901ms
+2023/03/15 11:12:36.244882 router.go:53: [info] in router close
+2023/03/15 11:12:36.245313 router.go:58: [info] [region 1] 4 set closed
+2023/03/15 11:12:36.245743 log.go:213: [info] 4 apply to 10
+2023/03/15 11:12:36.244493 region_task.go:139: [info] succeed in deleting data in range. [regionId: 1, startKey: , endKey: ]
+2023/03/15 11:12:36.246205 log.go:213: [info] 4 apply to 10
+2023/03/15 11:12:36.267910 raft.go:656: [info] 1 boardcast heartbeat
+2023/03/15 11:12:36.368449 raft.go:656: [info] 1 boardcast heartbeat
+2023/03/15 11:12:36.376445 log.go:128: [info] 1 append at after 11
+2023/03/15 11:12:36.376919 raft.go:704: [info] 1 leader append, last Index (11)
+2023/03/15 11:12:36.377338 raft.go:717: [info] 1 ready to commit 10
+2023/03/15 11:12:36.377775 log.go:288: [info] 1 ready to commit 10, term(7), curTerm(7)
+2023/03/15 11:12:36.378348 raft.go:295: [info] 1 send to 5 logterm 7, next 11
+2023/03/15 11:12:36.378786 raft.go:631: [info] 1 no progress available for 0, maybe removed, msgType(MsgPropose)
+2023/03/15 11:12:36.381065 log.go:225: [info] 1 stabled to 11
+2023/03/15 11:12:36.381538 raft.go:295: [info] 1 send to 5 logterm 7, next 11
+2023/03/15 11:12:36.381110 raft.go:751: [info] 1 -> 5 index 10
+2023/03/15 11:12:36.382519 log.go:360: [info] 5 index out of range i(11), dummy(5), last(10)
+2023/03/15 11:12:36.382925 log.go:128: [info] 5 append at after 11
+2023/03/15 11:12:36.383356 raft.go:753: [info] 5 accept append from 1 [index 10, logTerm 7], lastnewi 11
+2023/03/15 11:12:36.385511 log.go:225: [info] 5 stabled to 11
+2023/03/15 11:12:36.385970 raft.go:751: [info] 1 -> 5 index 10
+2023/03/15 11:12:36.386388 raft.go:753: [info] 5 accept append from 1 [index 10, logTerm 7], lastnewi 11
+2023/03/15 11:12:36.385558 raft.go:728: [info] 1 received a Append sucess, Index(11)
+2023/03/15 11:12:36.387243 raft.go:717: [info] 1 ready to commit 11
+2023/03/15 11:12:36.387596 log.go:288: [info] 1 ready to commit 11, term(7), curTerm(7)
+2023/03/15 11:12:36.387957 log.go:200: [info] 1 commit to 11
+2023/03/15 11:12:36.388393 raft.go:731: [info] 1 leader commit 11
+2023/03/15 11:12:36.388752 raft.go:295: [info] 1 send to 5 logterm 7, next 12
+2023/03/15 11:12:36.391074 peer_msg_handler.go:198: [info] [region 1] 1 region(1) remove node (5), peers([id:1 store_id:1 ])
+2023/03/15 11:12:36.391097 raft.go:751: [info] 1 -> 5 index 11
+2023/03/15 11:12:36.392050 log.go:200: [info] 5 commit to 11
+2023/03/15 11:12:36.392486 raft.go:753: [info] 5 accept append from 1 [index 11, logTerm 7], lastnewi 11
+2023/03/15 11:12:36.393149 raft.go:857: [info] raft remove node 5
+2023/03/15 11:12:36.393546 raft.go:717: [info] 1 ready to commit 11
+2023/03/15 11:12:36.393921 log.go:288: [info] 1 ready to commit 11, term(7), curTerm(7)
+2023/03/15 11:12:36.394295 log.go:213: [info] 1 apply to 11
+2023/03/15 11:12:36.394689 log.go:213: [info] 1 apply to 11
+2023/03/15 11:12:36.395116 peer_msg_handler.go:524: [info] [region 1] raft message MsgAppendResponse is stale, current conf_ver:5 version:1  ignore it
+2023/03/15 11:12:36.395527 peer_msg_handler.go:524: [info] [region 1] raft message MsgAppendResponse is stale, current conf_ver:5 version:1  ignore it
+2023/03/15 11:12:36.394817 peer_msg_handler.go:198: [info] [region 1] 5 region(1) remove node (5), peers([id:1 store_id:1 ])
+2023/03/15 11:12:36.398020 raft.go:857: [info] raft remove node 5
+2023/03/15 11:12:36.398421 peer_msg_handler.go:612: [info] [region 1] 5 starts destroy
+2023/03/15 11:12:36.398771 peer.go:203: [info] [region 1] 5 begin to destroy
+2023/03/15 11:12:36.399144 peer_storage.go:298: [info] [region 1] clear peer 1 meta key 1 apply key 1 raft key and 6 raft logs, takes 9.9µs
+2023/03/15 11:12:36.403059 peer.go:231: [info] [region 1] 5 destroy itself, takes 4.2845ms
+2023/03/15 11:12:36.403589 router.go:53: [info] in router close
+2023/03/15 11:12:36.404055 router.go:58: [info] [region 1] 5 set closed
+2023/03/15 11:12:36.404514 log.go:213: [info] 5 apply to 11
+2023/03/15 11:12:36.403188 region_task.go:139: [info] succeed in deleting data in range. [regionId: 1, startKey: , endKey: ]
+2023/03/15 11:12:36.405057 log.go:213: [info] 5 apply to 11
+2023/03/15 11:12:36.467884 raft.go:656: [info] 1 boardcast heartbeat
+2023/03/15 11:12:36.474944 log.go:128: [info] 1 append at after 12
+2023/03/15 11:12:36.476776 raft.go:704: [info] 1 leader append, last Index (12)
+2023/03/15 11:12:36.478595 raft.go:717: [info] 1 ready to commit 12
+2023/03/15 11:12:36.480032 log.go:288: [info] 1 ready to commit 12, term(7), curTerm(7)
+2023/03/15 11:12:36.481718 log.go:200: [info] 1 commit to 12
+2023/03/15 11:12:36.495332 log.go:213: [info] 1 apply to 12
+2023/03/15 11:12:36.497128 log.go:213: [info] 1 apply to 12
+2023/03/15 11:12:36.498833 log.go:225: [info] 1 stabled to 12
+2023/03/15 11:12:36.567807 raft.go:656: [info] 1 boardcast heartbeat
+2023/03/15 11:12:36.568512 log.go:128: [info] 1 append at after 13
+2023/03/15 11:12:36.569158 raft.go:704: [info] 1 leader append, last Index (13)
+2023/03/15 11:12:36.569712 raft.go:717: [info] 1 ready to commit 13
+2023/03/15 11:12:36.570264 log.go:288: [info] 1 ready to commit 13, term(7), curTerm(7)
+2023/03/15 11:12:36.570807 log.go:200: [info] 1 commit to 13
+2023/03/15 11:12:36.571379 raft.go:631: [info] 1 no progress available for 0, maybe removed, msgType(MsgPropose)
+2023/03/15 11:12:36.576968 peer_msg_handler.go:182: [info] [region 1] 1 region(1) add node (2), peers([id:1 store_id:1  id:2 store_id:2 ])
+2023/03/15 11:12:36.579822 raft.go:845: [info] raft add node 2
+2023/03/15 11:12:36.580550 log.go:213: [info] 1 apply to 13
+2023/03/15 11:12:36.581149 log.go:213: [info] 1 apply to 13
+2023/03/15 11:12:36.581719 log.go:225: [info] 1 stabled to 13
+2023/03/15 11:12:36.667776 raft.go:656: [info] 1 boardcast heartbeat
+2023/03/15 11:12:36.675561 router.go:94: [info] send store msg type(MsgHeartbeat)
+2023/03/15 11:12:36.677256 peer.go:51: [info] [region 1] replicates peer with ID 2
+2023/03/15 11:12:36.677461 log.go:128: [info] 1 append at after 14
+2023/03/15 11:12:36.680589 raft.go:704: [info] 1 leader append, last Index (14)
+2023/03/15 11:12:36.685929 raft.go:717: [info] 1 ready to commit 0
+2023/03/15 11:12:36.683396 raft.go:454: [info] 2 became follower at term 0
+2023/03/15 11:12:36.689360 store_worker.go:232: [info] store(2) created peer(2)
+2023/03/15 11:12:36.687898 log.go:360: [info] 1 index out of range i(0), dummy(5), last(14)
+2023/03/15 11:12:36.692887 log.go:288: [info] 1 ready to commit 0, term(0), curTerm(7)
+2023/03/15 11:12:36.691339 raft.go:501: [info] 2 [term: 0] received a MsgHeartbeat message with higher term from 1 [term: 7]
+2023/03/15 11:12:36.696351 raft.go:454: [info] 2 became follower at term 7
+2023/03/15 11:12:36.694857 raft.go:295: [info] 1 send to 2 logterm 7, next 14
+2023/03/15 11:12:36.703731 log.go:225: [info] 1 stabled to 14
+2023/03/15 11:12:36.705130 raft.go:295: [info] 1 send to 2 logterm 7, next 14
+2023/03/15 11:12:36.703833 raft.go:751: [info] 1 -> 2 index 13
+2023/03/15 11:12:36.707761 log.go:360: [info] 2 index out of range i(13), dummy(0), last(0)
+2023/03/15 11:12:36.709034 log.go:360: [info] 2 index out of range i(13), dummy(0), last(0)
+2023/03/15 11:12:36.710093 raft.go:763: [info] 2 [index 13, logTerm 0, lastIndex 0] reject append from 1 [index 13, logTerm 7]
+2023/03/15 11:12:36.713473 raft.go:751: [info] 1 -> 2 index 13
+2023/03/15 11:12:36.714393 log.go:360: [info] 2 index out of range i(13), dummy(0), last(0)
+2023/03/15 11:12:36.715224 log.go:360: [info] 2 index out of range i(13), dummy(0), last(0)
+2023/03/15 11:12:36.713501 raft.go:723: [info] 1 receive a reject AppResp from 2
+2023/03/15 11:12:36.717097 log.go:360: [info] 1 index out of range i(0), dummy(5), last(14)
+2023/03/15 11:12:36.718066 raft.go:295: [info] 1 send to 2 logterm 0, next 1
+2023/03/15 11:12:36.716222 raft.go:763: [info] 2 [index 13, logTerm 0, lastIndex 0] reject append from 1 [index 13, logTerm 7]
+2023/03/15 11:12:36.719064 peer_storage.go:182: [info] [region 1] 1 requesting snapshot
+2023/03/15 11:12:36.720613 raft.go:303: [info] 1 called storage.Snapshot(), but Temporarily Unavailable
+2023/03/15 11:12:36.720713 region_task.go:167: [info] begin to generate a snapshot. [regionId: 1]
+2023/03/15 11:12:36.721975 raft.go:723: [info] 1 receive a reject AppResp from 2
+2023/03/15 11:12:36.723261 snap.go:549: [info] region 1 scan snapshot /tmp/test-raftstore3586954219/snap/gen_1_7_13_(default|write|lock).sst, key count 1, size 12
+2023/03/15 11:12:36.728989 region_task.go:210: [info] succeed to generate a snapshot. [regionId: 1]
+2023/03/15 11:12:36.767469 raft.go:656: [info] 1 boardcast heartbeat
+2023/03/15 11:12:36.772604 log.go:360: [info] 1 index out of range i(0), dummy(5), last(14)
+2023/03/15 11:12:36.773193 raft.go:295: [info] 1 send to 2 logterm 0, next 1
+2023/03/15 11:12:36.773769 raft.go:311: [info] 1 send to(2) snapshot[index 13, term 7]
+2023/03/15 11:12:36.780379 log.go:360: [info] 2 index out of range i(13), dummy(0), last(0)
+2023/03/15 11:12:36.780811 raft.go:806: [info] 2 restored snapshot[index 13 term 7]
+2023/03/15 11:12:36.781178 raft.go:782: [info] 2 accept snapshot[index 13 term 7] from 1
+2023/03/15 11:12:36.781623 peer_storage.go:329: [info] [region 1] 2 begin to apply snapshot
+2023/03/15 11:12:36.782014 peer_storage.go:353: [info] [region 1] 2 applying snapshot WB wrote to db
+2023/03/15 11:12:36.782437 peer_storage.go:298: [info] [region 1] clear peer 1 meta key 1 apply key 1 raft key and 0 raft logs, takes 7µs
+2023/03/15 11:12:36.782103 region_task.go:95: [info] begin apply snap data. [regionId: 1]
+2023/03/15 11:12:36.783282 region_task.go:139: [info] succeed in deleting data in range. [regionId: 1, startKey: , endKey: ]
+2023/03/15 11:12:36.867811 raft.go:656: [info] 1 boardcast heartbeat
+2023/03/15 11:12:36.889023 snap.go:700: [info] apply snapshot ingested 1 tables
+2023/03/15 11:12:36.891257 region_task.go:119: [info] applying new data. [regionId: 1, timeTakes: 30.606703ms]
+2023/03/15 11:12:36.893541 peer_storage.go:379: [info] [region 1] 2 finished to apply snapshot
+2023/03/15 11:12:36.902041 log.go:213: [info] 2 apply to 13
+2023/03/15 11:12:36.903582 log.go:213: [info] 2 apply to 13
+2023/03/15 11:12:36.902208 raft.go:728: [info] 1 received a Append sucess, Index(13)
+2023/03/15 11:12:36.906091 raft.go:717: [info] 1 ready to commit 13
+2023/03/15 11:12:36.907318 log.go:288: [info] 1 ready to commit 13, term(7), curTerm(7)
+2023/03/15 11:12:36.908659 raft.go:295: [info] 1 send to 2 logterm 7, next 14
+2023/03/15 11:12:36.912855 raft.go:751: [info] 1 -> 2 index 13
+2023/03/15 11:12:36.914191 log.go:360: [info] 2 index out of range i(14), dummy(13), last(13)
+2023/03/15 11:12:36.915459 log.go:128: [info] 2 append at after 14
+2023/03/15 11:12:36.916693 raft.go:753: [info] 2 accept append from 1 [index 13, logTerm 7], lastnewi 14
+2023/03/15 11:12:36.921163 log.go:225: [info] 2 stabled to 14
+2023/03/15 11:12:36.921290 raft.go:728: [info] 1 received a Append sucess, Index(14)
+2023/03/15 11:12:36.923753 raft.go:717: [info] 1 ready to commit 14
+2023/03/15 11:12:36.924953 log.go:288: [info] 1 ready to commit 14, term(7), curTerm(7)
+2023/03/15 11:12:36.926087 log.go:200: [info] 1 commit to 14
+2023/03/15 11:12:36.927370 raft.go:731: [info] 1 leader commit 14
+2023/03/15 11:12:36.928654 raft.go:295: [info] 1 send to 2 logterm 7, next 15
+2023/03/15 11:12:36.933169 raft.go:751: [info] 1 -> 2 index 14
+2023/03/15 11:12:36.934466 log.go:200: [info] 2 commit to 14
+2023/03/15 11:12:36.935629 raft.go:753: [info] 2 accept append from 1 [index 14, logTerm 7], lastnewi 14
+2023/03/15 11:12:36.935890 log.go:213: [info] 1 apply to 14
+2023/03/15 11:12:36.938174 log.go:213: [info] 1 apply to 14
+2023/03/15 11:12:36.939523 log.go:128: [info] 1 append at after 15
+2023/03/15 11:12:36.940615 raft.go:704: [info] 1 leader append, last Index (15)
+2023/03/15 11:12:36.941869 raft.go:717: [info] 1 ready to commit 14
+2023/03/15 11:12:36.943276 log.go:288: [info] 1 ready to commit 14, term(7), curTerm(7)
+2023/03/15 11:12:36.944576 raft.go:295: [info] 1 send to 2 logterm 7, next 15
+2023/03/15 11:12:36.942638 log.go:213: [info] 2 apply to 14
+2023/03/15 11:12:36.947155 log.go:213: [info] 2 apply to 14
+2023/03/15 11:12:36.949138 log.go:225: [info] 1 stabled to 15
+2023/03/15 11:12:36.950335 raft.go:728: [info] 1 received a Append sucess, Index(14)
+2023/03/15 11:12:36.949247 raft.go:751: [info] 1 -> 2 index 14
+2023/03/15 11:12:36.953053 log.go:360: [info] 2 index out of range i(15), dummy(13), last(14)
+2023/03/15 11:12:36.954010 log.go:128: [info] 2 append at after 15
+2023/03/15 11:12:36.955039 raft.go:753: [info] 2 accept append from 1 [index 14, logTerm 7], lastnewi 15
+2023/03/15 11:12:36.958487 log.go:225: [info] 2 stabled to 15
+2023/03/15 11:12:36.958545 raft.go:728: [info] 1 received a Append sucess, Index(15)
+2023/03/15 11:12:36.960291 raft.go:717: [info] 1 ready to commit 15
+2023/03/15 11:12:36.961112 log.go:288: [info] 1 ready to commit 15, term(7), curTerm(7)
+2023/03/15 11:12:36.962064 log.go:200: [info] 1 commit to 15
+2023/03/15 11:12:36.962927 raft.go:731: [info] 1 leader commit 15
+2023/03/15 11:12:36.963627 raft.go:295: [info] 1 send to 2 logterm 7, next 16
+2023/03/15 11:12:36.966903 raft.go:751: [info] 1 -> 2 index 15
+2023/03/15 11:12:36.967641 log.go:200: [info] 2 commit to 15
+2023/03/15 11:12:36.968388 raft.go:753: [info] 2 accept append from 1 [index 15, logTerm 7], lastnewi 15
+2023/03/15 11:12:36.969084 log.go:213: [info] 1 apply to 15
+2023/03/15 11:12:36.969802 log.go:213: [info] 1 apply to 15
+2023/03/15 11:12:36.970403 raft.go:656: [info] 1 boardcast heartbeat
+2023/03/15 11:12:36.972890 log.go:213: [info] 2 apply to 15
+2023/03/15 11:12:36.973483 log.go:213: [info] 2 apply to 15
+2023/03/15 11:12:36.972897 raft.go:728: [info] 1 received a Append sucess, Index(15)
+2023/03/15 11:12:36.974658 log.go:128: [info] 1 append at after 16
+2023/03/15 11:12:36.975113 raft.go:704: [info] 1 leader append, last Index (16)
+2023/03/15 11:12:36.975563 raft.go:717: [info] 1 ready to commit 15
+2023/03/15 11:12:36.976019 log.go:288: [info] 1 ready to commit 15, term(7), curTerm(7)
+2023/03/15 11:12:36.976492 raft.go:295: [info] 1 send to 2 logterm 7, next 16
+2023/03/15 11:12:36.976924 raft.go:631: [info] 1 no progress available for 0, maybe removed, msgType(MsgPropose)
+2023/03/15 11:12:36.979200 log.go:225: [info] 1 stabled to 16
+2023/03/15 11:12:36.979642 raft.go:295: [info] 1 send to 2 logterm 7, next 16
+2023/03/15 11:12:36.979220 raft.go:751: [info] 1 -> 2 index 15
+2023/03/15 11:12:36.980754 log.go:360: [info] 2 index out of range i(16), dummy(13), last(15)
+2023/03/15 11:12:36.981218 log.go:128: [info] 2 append at after 16
+2023/03/15 11:12:36.981726 raft.go:753: [info] 2 accept append from 1 [index 15, logTerm 7], lastnewi 16
+2023/03/15 11:12:36.984379 log.go:225: [info] 2 stabled to 16
+2023/03/15 11:12:36.986002 raft.go:728: [info] 1 received a Append sucess, Index(16)
+2023/03/15 11:12:36.986496 raft.go:717: [info] 1 ready to commit 16
+2023/03/15 11:12:36.986998 log.go:288: [info] 1 ready to commit 16, term(7), curTerm(7)
+2023/03/15 11:12:36.987445 log.go:200: [info] 1 commit to 16
+2023/03/15 11:12:36.986113 raft.go:751: [info] 1 -> 2 index 15
+2023/03/15 11:12:36.988256 raft.go:753: [info] 2 accept append from 1 [index 15, logTerm 7], lastnewi 16
+2023/03/15 11:12:36.987893 raft.go:731: [info] 1 leader commit 16
+2023/03/15 11:12:36.989241 raft.go:295: [info] 1 send to 2 logterm 7, next 17
+2023/03/15 11:12:36.992027 peer_msg_handler.go:182: [info] [region 1] 1 region(1) add node (3), peers([id:1 store_id:1  id:2 store_id:2  id:3 store_id:3 ])
+2023/03/15 11:12:36.992062 raft.go:751: [info] 1 -> 2 index 16
+2023/03/15 11:12:36.993342 log.go:200: [info] 2 commit to 16
+2023/03/15 11:12:36.993813 raft.go:753: [info] 2 accept append from 1 [index 16, logTerm 7], lastnewi 16
+2023/03/15 11:12:36.994442 raft.go:845: [info] raft add node 3
+2023/03/15 11:12:36.994848 log.go:213: [info] 1 apply to 16
+2023/03/15 11:12:36.995172 log.go:213: [info] 1 apply to 16
+2023/03/15 11:12:36.995552 raft.go:728: [info] 1 received a Append sucess, Index(16)
+2023/03/15 11:12:36.996025 peer_msg_handler.go:182: [info] [region 1] 2 region(1) add node (3), peers([id:1 store_id:1  id:2 store_id:2  id:3 store_id:3 ])
+2023/03/15 11:12:36.996068 raft.go:728: [info] 1 received a Append sucess, Index(16)
+2023/03/15 11:12:36.997932 raft.go:845: [info] raft add node 3
+2023/03/15 11:12:36.998334 log.go:213: [info] 2 apply to 16
+2023/03/15 11:12:36.998673 log.go:213: [info] 2 apply to 16
+2023/03/15 11:12:37.067658 raft.go:656: [info] 1 boardcast heartbeat
+2023/03/15 11:12:37.073455 router.go:94: [info] send store msg type(MsgHeartbeat)
+2023/03/15 11:12:37.074142 peer.go:51: [info] [region 1] replicates peer with ID 3
+2023/03/15 11:12:37.076859 raft.go:454: [info] 3 became follower at term 0
+2023/03/15 11:12:37.077427 store_worker.go:232: [info] store(3) created peer(3)
+2023/03/15 11:12:37.078007 raft.go:501: [info] 3 [term: 0] received a MsgHeartbeat message with higher term from 1 [term: 7]
+2023/03/15 11:12:37.078564 raft.go:454: [info] 3 became follower at term 7
+2023/03/15 11:12:37.080827 raft.go:295: [info] 1 send to 3 logterm 7, next 17
+2023/03/15 11:12:37.083166 raft.go:751: [info] 1 -> 3 index 16
+2023/03/15 11:12:37.083540 log.go:360: [info] 3 index out of range i(16), dummy(0), last(0)
+2023/03/15 11:12:37.083926 log.go:360: [info] 3 index out of range i(16), dummy(0), last(0)
+2023/03/15 11:12:37.084264 raft.go:763: [info] 3 [index 16, logTerm 0, lastIndex 0] reject append from 1 [index 16, logTerm 7]
+2023/03/15 11:12:37.086345 raft.go:723: [info] 1 receive a reject AppResp from 3
+2023/03/15 11:12:37.086771 log.go:360: [info] 1 index out of range i(0), dummy(5), last(16)
+2023/03/15 11:12:37.087130 raft.go:295: [info] 1 send to 3 logterm 0, next 1
+2023/03/15 11:12:37.087580 peer_storage.go:182: [info] [region 1] 1 requesting snapshot
+2023/03/15 11:12:37.087924 raft.go:303: [info] 1 called storage.Snapshot(), but Temporarily Unavailable
+2023/03/15 11:12:37.087955 region_task.go:167: [info] begin to generate a snapshot. [regionId: 1]
+2023/03/15 11:12:37.089174 snap.go:549: [info] region 1 scan snapshot /tmp/test-raftstore3586954219/snap/gen_1_7_16_(default|write|lock).sst, key count 2, size 24
+2023/03/15 11:12:37.093662 region_task.go:210: [info] succeed to generate a snapshot. [regionId: 1]
+2023/03/15 11:12:37.167743 raft.go:656: [info] 1 boardcast heartbeat
+2023/03/15 11:12:37.172421 log.go:128: [info] 1 append at after 17
+2023/03/15 11:12:37.172876 raft.go:704: [info] 1 leader append, last Index (17)
+2023/03/15 11:12:37.173245 raft.go:717: [info] 1 ready to commit 16
+2023/03/15 11:12:37.173585 log.go:288: [info] 1 ready to commit 16, term(7), curTerm(7)
+2023/03/15 11:12:37.174050 raft.go:295: [info] 1 send to 2 logterm 7, next 17
+2023/03/15 11:12:37.174454 log.go:360: [info] 1 index out of range i(0), dummy(5), last(17)
+2023/03/15 11:12:37.174886 raft.go:295: [info] 1 send to 3 logterm 0, next 1
+2023/03/15 11:12:37.175263 raft.go:311: [info] 1 send to(3) snapshot[index 16, term 7]
+2023/03/15 11:12:37.175712 raft.go:631: [info] 1 no progress available for 0, maybe removed, msgType(MsgPropose)
+2023/03/15 11:12:37.178047 raft.go:751: [info] 1 -> 2 index 16
+2023/03/15 11:12:37.178547 log.go:360: [info] 2 index out of range i(17), dummy(13), last(16)
+2023/03/15 11:12:37.179042 log.go:128: [info] 2 append at after 17
+2023/03/15 11:12:37.179490 raft.go:753: [info] 2 accept append from 1 [index 16, logTerm 7], lastnewi 17
+2023/03/15 11:12:37.181878 log.go:225: [info] 2 stabled to 17
+2023/03/15 11:12:37.183114 log.go:225: [info] 1 stabled to 17
+2023/03/15 11:12:37.183522 log.go:360: [info] 1 index out of range i(0), dummy(5), last(17)
+2023/03/15 11:12:37.183972 raft.go:295: [info] 1 send to 3 logterm 0, next 1
+2023/03/15 11:12:37.184364 peer_storage.go:182: [info] [region 1] 1 requesting snapshot
+2023/03/15 11:12:37.183263 log.go:360: [info] 3 index out of range i(16), dummy(0), last(0)
+2023/03/15 11:12:37.185206 raft.go:806: [info] 3 restored snapshot[index 16 term 7]
+2023/03/15 11:12:37.185670 raft.go:782: [info] 3 accept snapshot[index 16 term 7] from 1
+2023/03/15 11:12:37.186059 peer_storage.go:329: [info] [region 1] 3 begin to apply snapshot
+2023/03/15 11:12:37.184889 region_task.go:167: [info] begin to generate a snapshot. [regionId: 1]
+2023/03/15 11:12:37.186594 peer_storage.go:353: [info] [region 1] 3 applying snapshot WB wrote to db
+2023/03/15 11:12:37.187412 peer_storage.go:298: [info] [region 1] clear peer 1 meta key 1 apply key 1 raft key and 0 raft logs, takes 8µs
+2023/03/15 11:12:37.186981 region_task.go:210: [info] succeed to generate a snapshot. [regionId: 1]
+2023/03/15 11:12:37.184887 raft.go:303: [info] 1 called storage.Snapshot(), but Temporarily Unavailable
+2023/03/15 11:12:37.186596 region_task.go:95: [info] begin apply snap data. [regionId: 1]
+2023/03/15 11:12:37.189239 region_task.go:139: [info] succeed in deleting data in range. [regionId: 1, startKey: , endKey: ]
+2023/03/15 11:12:37.188729 raft.go:295: [info] 1 send to 2 logterm 7, next 17
+2023/03/15 11:12:37.190150 raft.go:728: [info] 1 received a Append sucess, Index(17)
+2023/03/15 11:12:37.190525 raft.go:717: [info] 1 ready to commit 17
+2023/03/15 11:12:37.190933 log.go:288: [info] 1 ready to commit 17, term(7), curTerm(7)
+2023/03/15 11:12:37.191342 log.go:200: [info] 1 commit to 17
+2023/03/15 11:12:37.191765 raft.go:731: [info] 1 leader commit 17
+2023/03/15 11:12:37.192139 raft.go:295: [info] 1 send to 2 logterm 7, next 18
+2023/03/15 11:12:37.192544 log.go:360: [info] 1 index out of range i(0), dummy(5), last(17)
+2023/03/15 11:12:37.192951 raft.go:295: [info] 1 send to 3 logterm 0, next 1
+2023/03/15 11:12:37.193354 raft.go:311: [info] 1 send to(3) snapshot[index 16, term 7]
+2023/03/15 11:12:37.196705 raft.go:751: [info] 1 -> 2 index 16
+2023/03/15 11:12:37.197194 raft.go:753: [info] 2 accept append from 1 [index 16, logTerm 7], lastnewi 17
+2023/03/15 11:12:37.197634 raft.go:751: [info] 1 -> 2 index 17
+2023/03/15 11:12:37.198104 log.go:200: [info] 2 commit to 17
+2023/03/15 11:12:37.196879 peer_msg_handler.go:198: [info] [region 1] 1 region(1) remove node (2), peers([id:1 store_id:1  id:3 store_id:3 ])
+2023/03/15 11:12:37.198677 raft.go:753: [info] 2 accept append from 1 [index 17, logTerm 7], lastnewi 17
+2023/03/15 11:12:37.201536 peer_msg_handler.go:198: [info] [region 1] 2 region(1) remove node (2), peers([id:1 store_id:1  id:3 store_id:3 ])
+2023/03/15 11:12:37.202539 raft.go:857: [info] raft remove node 2
+2023/03/15 11:12:37.202964 raft.go:717: [info] 1 ready to commit 0
+2023/03/15 11:12:37.203392 log.go:360: [info] 1 index out of range i(0), dummy(5), last(17)
+2023/03/15 11:12:37.203849 log.go:288: [info] 1 ready to commit 0, term(0), curTerm(7)
+2023/03/15 11:12:37.204267 log.go:213: [info] 1 apply to 17
+2023/03/15 11:12:37.204670 log.go:213: [info] 1 apply to 17
+2023/03/15 11:12:37.203825 raft.go:857: [info] raft remove node 2
+2023/03/15 11:12:37.205518 peer_msg_handler.go:612: [info] [region 1] 2 starts destroy
+2023/03/15 11:12:37.205971 peer.go:203: [info] [region 1] 2 begin to destroy
+2023/03/15 11:12:37.206408 peer_storage.go:298: [info] [region 1] clear peer 1 meta key 1 apply key 1 raft key and 4 raft logs, takes 8.5µs
+2023/03/15 11:12:37.203651 snap.go:700: [info] apply snapshot ingested 1 tables
+2023/03/15 11:12:37.207279 region_task.go:119: [info] applying new data. [regionId: 1, timeTakes: 17.222501ms]
+2023/03/15 11:12:37.207721 peer_storage.go:379: [info] [region 1] 3 finished to apply snapshot
+2023/03/15 11:12:37.205151 peer_msg_handler.go:524: [info] [region 1] raft message MsgAppendResponse is stale, current conf_ver:8 version:1  ignore it
+2023/03/15 11:12:37.208717 peer_msg_handler.go:524: [info] [region 1] raft message MsgAppendResponse is stale, current conf_ver:8 version:1  ignore it
+2023/03/15 11:12:37.211205 peer.go:231: [info] [region 1] 2 destroy itself, takes 5.2334ms
+2023/03/15 11:12:37.211625 router.go:53: [info] in router close
+2023/03/15 11:12:37.212088 router.go:58: [info] [region 1] 2 set closed
+2023/03/15 11:12:37.212471 log.go:213: [info] 2 apply to 17
+2023/03/15 11:12:37.212940 log.go:213: [info] 2 apply to 17
+2023/03/15 11:12:37.212632 log.go:213: [info] 3 apply to 16
+2023/03/15 11:12:37.213763 log.go:213: [info] 3 apply to 16
+2023/03/15 11:12:37.214120 region_task.go:139: [info] succeed in deleting data in range. [regionId: 1, startKey: , endKey: ]
+3 meta corrupted id:1 region_epoch:<>  != id:1 region_epoch:<conf_ver:7 version:1 > peers:<id:1 store_id:1 > peers:<id:2 store_id:2 > peers:<id:3 store_id:3 > 

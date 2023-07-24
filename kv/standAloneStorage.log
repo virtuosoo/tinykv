@@ -1,0 +1,126 @@
+2023/03/23 12:23:54.000348 main.go:50: [info] Server started with conf &{StoreAddr:127.0.0.1:20160 Raft:true SchedulerAddr:127.0.0.1:2379 LogLevel:info DBPath:/tmp/badger RaftBaseTickInterval:1s RaftHeartbeatTicks:2 RaftElectionTimeoutTicks:10 RaftLogGCTickInterval:10s RaftLogGcCountLimit:128000 SplitRegionCheckTickInterval:10s SchedulerHeartbeatTickInterval:10s SchedulerStoreHeartbeatTickInterval:10s RegionMaxSize:150994944 RegionSplitSize:100663296}
+2023/03/23 12:23:54.061260 client.go:96: [info] [][scheduler] create scheduler client with endpoints [http://127.0.0.1:2379]
+2023/03/23 12:23:54.063458 client.go:203: [info] [scheduler] switch leader, new-leader: http://127.0.0.1:2379, old-leader: 
+2023/03/23 12:23:54.067360 client.go:124: [info] [][scheduler] init cluster id 7213592687244575622
+2023/03/23 12:23:54.068575 client.go:305: [warning] [][scheduler] heartbeat stream get error: EOF 
+2023/03/23 12:23:54.087330 node.go:60: [info] try bootstrap cluster, storeID: 1, region: id:1 region_epoch:<conf_ver:1 version:1 > peers:<id:1 store_id:1 > peers:<id:2 store_id:2 > peers:<id:3 store_id:3 > 
+2023/03/23 12:23:54.092034 node.go:205: [info] bootstrap cluster ok, clusterID: 7213592687244575622
+2023/03/23 12:23:54.098813 node.go:226: [info] start raft store node, storeID: 1
+2023/03/23 12:23:54.099363 peer.go:41: [info] region id:1 region_epoch:<conf_ver:1 version:1 > peers:<id:1 store_id:1 > peers:<id:2 store_id:2 > peers:<id:3 store_id:3 >  create peer with ID 1
+2023/03/23 12:23:54.099848 log.go:214: [info] 1 apply to 5
+2023/03/23 12:23:54.100361 raft.go:454: [info] 1 became follower at term 5
+2023/03/23 12:23:54.100922 raftstore.go:186: [info] start store 1, region_count 1, tombstone_count 0, takes 1.588101ms
+2023/03/23 12:23:54.101491 raft_server.go:206: [info] raft storage start success
+2023/03/23 12:24:06.102496 raft.go:463: [info] 1 became Candidate at term 6
+2023/03/23 12:24:06.104726 raft.go:677: [info] 1 received vote from 1 at term 6
+2023/03/23 12:24:06.106597 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/23 12:24:06.108565 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/23 12:24:06.117920 log.go:214: [info] 1 apply to 5
+2023/03/23 12:24:16.135544 transport.go:56: [error] resolve store address failed. storeID: 3, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 3, not found
+2023/03/23 12:24:20.101746 raft.go:463: [info] 1 became Candidate at term 7
+2023/03/23 12:24:20.104019 raft.go:677: [info] 1 received vote from 1 at term 7
+2023/03/23 12:24:20.105939 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/23 12:24:20.107910 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/23 12:24:20.116380 log.go:214: [info] 1 apply to 5
+2023/03/23 12:24:26.154044 transport.go:56: [error] resolve store address failed. storeID: 2, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 2, not found
+2023/03/23 12:24:31.102245 raft.go:463: [info] 1 became Candidate at term 8
+2023/03/23 12:24:31.103837 raft.go:677: [info] 1 received vote from 1 at term 8
+2023/03/23 12:24:31.105356 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/23 12:24:31.106801 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/23 12:24:31.111347 log.go:214: [info] 1 apply to 5
+2023/03/23 12:24:36.175640 transport.go:56: [error] resolve store address failed. storeID: 3, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 3, not found
+2023/03/23 12:24:46.200710 transport.go:56: [error] resolve store address failed. storeID: 2, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 2, not found
+2023/03/23 12:24:48.101854 raft.go:463: [info] 1 became Candidate at term 9
+2023/03/23 12:24:48.104072 raft.go:677: [info] 1 received vote from 1 at term 9
+2023/03/23 12:24:48.105989 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/23 12:24:48.107940 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/23 12:24:48.114017 log.go:214: [info] 1 apply to 5
+2023/03/23 12:24:58.130875 transport.go:56: [error] resolve store address failed. storeID: 2, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 2, not found
+2023/03/23 12:25:01.102857 raft.go:463: [info] 1 became Candidate at term 10
+2023/03/23 12:25:01.103746 raft.go:677: [info] 1 received vote from 1 at term 10
+2023/03/23 12:25:01.104524 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/23 12:25:01.105222 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/23 12:25:01.108271 log.go:214: [info] 1 apply to 5
+2023/03/23 12:25:08.145902 transport.go:56: [error] resolve store address failed. storeID: 3, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 3, not found
+2023/03/23 12:25:14.102567 raft.go:463: [info] 1 became Candidate at term 11
+2023/03/23 12:25:14.103331 raft.go:677: [info] 1 received vote from 1 at term 11
+2023/03/23 12:25:14.103936 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/23 12:25:14.104622 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/23 12:25:14.107604 log.go:214: [info] 1 apply to 5
+2023/03/23 12:25:18.165902 transport.go:56: [error] resolve store address failed. storeID: 2, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 2, not found
+2023/03/23 12:25:28.184314 transport.go:56: [error] resolve store address failed. storeID: 3, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 3, not found
+2023/03/23 12:25:32.102820 raft.go:463: [info] 1 became Candidate at term 12
+2023/03/23 12:25:32.103544 raft.go:677: [info] 1 received vote from 1 at term 12
+2023/03/23 12:25:32.104189 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/23 12:25:32.104752 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/23 12:25:32.107601 log.go:214: [info] 1 apply to 5
+2023/03/23 12:25:42.126381 transport.go:56: [error] resolve store address failed. storeID: 2, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 2, not found
+2023/03/23 12:25:48.101801 raft.go:463: [info] 1 became Candidate at term 13
+2023/03/23 12:25:48.102655 raft.go:677: [info] 1 received vote from 1 at term 13
+2023/03/23 12:25:48.103406 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/23 12:25:48.104160 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/23 12:25:48.107585 log.go:214: [info] 1 apply to 5
+2023/03/23 12:25:52.145841 transport.go:56: [error] resolve store address failed. storeID: 3, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 3, not found
+2023/03/23 12:26:01.101878 raft.go:463: [info] 1 became Candidate at term 14
+2023/03/23 12:26:01.103864 raft.go:677: [info] 1 received vote from 1 at term 14
+2023/03/23 12:26:01.105728 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/23 12:26:01.107551 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/23 12:26:01.113670 log.go:214: [info] 1 apply to 5
+2023/03/23 12:26:02.163975 transport.go:56: [error] resolve store address failed. storeID: 2, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 2, not found
+2023/03/23 12:26:12.185236 transport.go:56: [error] resolve store address failed. storeID: 3, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 3, not found
+2023/03/23 12:26:14.101860 raft.go:463: [info] 1 became Candidate at term 15
+2023/03/23 12:26:14.102716 raft.go:677: [info] 1 received vote from 1 at term 15
+2023/03/23 12:26:14.103222 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/23 12:26:14.103724 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/23 12:26:14.106372 log.go:214: [info] 1 apply to 5
+2023/03/23 12:26:24.118231 transport.go:56: [error] resolve store address failed. storeID: 2, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 2, not found
+2023/03/23 12:26:33.102207 raft.go:463: [info] 1 became Candidate at term 16
+2023/03/23 12:26:33.103087 raft.go:677: [info] 1 received vote from 1 at term 16
+2023/03/23 12:26:33.103812 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/23 12:26:33.104485 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/23 12:26:33.109237 log.go:214: [info] 1 apply to 5
+2023/03/23 12:26:34.136796 transport.go:56: [error] resolve store address failed. storeID: 3, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 3, not found
+2023/03/23 12:26:44.151900 transport.go:56: [error] resolve store address failed. storeID: 2, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 2, not found
+2023/03/23 12:26:52.102714 raft.go:463: [info] 1 became Candidate at term 17
+2023/03/23 12:26:52.103619 raft.go:677: [info] 1 received vote from 1 at term 17
+2023/03/23 12:26:52.104166 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/23 12:26:52.104764 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/23 12:26:52.107867 log.go:214: [info] 1 apply to 5
+2023/03/23 12:27:02.121978 transport.go:56: [error] resolve store address failed. storeID: 2, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 2, not found
+2023/03/23 12:27:08.103031 raft.go:463: [info] 1 became Candidate at term 18
+2023/03/23 12:27:08.103948 raft.go:677: [info] 1 received vote from 1 at term 18
+2023/03/23 12:27:08.104748 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/23 12:27:08.105496 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/23 12:27:08.109775 log.go:214: [info] 1 apply to 5
+2023/03/23 12:27:12.138317 transport.go:56: [error] resolve store address failed. storeID: 3, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 3, not found
+2023/03/23 12:27:21.102015 raft.go:463: [info] 1 became Candidate at term 19
+2023/03/23 12:27:21.102657 raft.go:677: [info] 1 received vote from 1 at term 19
+2023/03/23 12:27:21.103232 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/23 12:27:21.103766 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/23 12:27:21.106314 log.go:214: [info] 1 apply to 5
+2023/03/23 12:27:22.158213 transport.go:56: [error] resolve store address failed. storeID: 2, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 2, not found
+2023/03/23 12:27:32.172323 transport.go:56: [error] resolve store address failed. storeID: 3, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 3, not found
+2023/03/23 12:27:35.102740 raft.go:463: [info] 1 became Candidate at term 20
+2023/03/23 12:27:35.103698 raft.go:677: [info] 1 received vote from 1 at term 20
+2023/03/23 12:27:35.104509 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/23 12:27:35.105058 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/23 12:27:35.107379 log.go:214: [info] 1 apply to 5
+2023/03/23 12:27:45.121365 transport.go:56: [error] resolve store address failed. storeID: 2, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 2, not found
+2023/03/23 12:27:52.102222 raft.go:463: [info] 1 became Candidate at term 21
+2023/03/23 12:27:52.102785 raft.go:677: [info] 1 received vote from 1 at term 21
+2023/03/23 12:27:52.103386 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/23 12:27:52.103868 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/23 12:27:52.106968 log.go:214: [info] 1 apply to 5
+2023/03/23 12:27:55.137459 transport.go:56: [error] resolve store address failed. storeID: 3, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 3, not found
+2023/03/23 12:28:05.101633 raft.go:463: [info] 1 became Candidate at term 22
+2023/03/23 12:28:05.102398 raft.go:677: [info] 1 received vote from 1 at term 22
+2023/03/23 12:28:05.102945 raft.go:425: [info] 1 send requestVote msg to 2
+2023/03/23 12:28:05.103381 raft.go:425: [info] 1 send requestVote msg to 3
+2023/03/23 12:28:05.105735 log.go:214: [info] 1 apply to 5
+2023/03/23 12:28:05.154894 transport.go:56: [error] resolve store address failed. storeID: 2, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 2, not found
+2023/03/23 12:28:15.172538 transport.go:56: [error] resolve store address failed. storeID: 3, err: failed too many times: rpc error: code = Unknown desc = invalid store ID 3, not found
+2023/03/23 12:28:21.646378 client.go:305: [warning] [][scheduler] heartbeat stream get error: rpc error: code = Unavailable desc = transport is closing 
+2023/03/23 12:28:21.646996 client.go:156: [error] [scheduler] failed updateLeader, err: failed to get leader from [http://127.0.0.1:2379]
+2023/03/23 12:28:22.647681 client.go:156: [error] [scheduler] failed updateLeader, err: failed to get leader from [http://127.0.0.1:2379]
+2023/03/23 12:28:23.085157 main.go:98: [info] Got signal [interrupt] to exit.
+2023/03/23 12:28:23.087804 log.go:81: [info] [Server stopped.]

@@ -9,3 +9,94 @@
 
     原因：发送applysnapshot的任务的任务时类型出错，导致接收方不做任何处理，应该发送指针类型。
     为什么有时还能通过测试？snapshot根本没有触发？
+3.3B
+    非测试问题。
+    // d. 2 is isolated but can communicate with 3. 1 removes 2, then adds 4, remove 3.
+	//  2 will send stale MsgRequestVote to 3, 3 should tell 2 to gc itself.
+    3被remove之后，应该不会再处理信息，如何让2 gc?
+
+    	if d.stopped {
+		    return nil
+	    }   
+
+    解决：3对应的peer不在之后，msg会转交storeworker处理，store worker会识别过期的epoch并让2gc
+
+    if util.IsEpochStale(fromEpoch, regionEpoch) {
+		log.Infof("tombstone peer receives a stale message. region_id:%d, from_region_epoch:%s, current_region_epoch:%s, msg_type:%s",
+			regionID, fromEpoch, regionEpoch, msgType)
+		notExist := util.FindPeer(region, fromStoreID) == nil
+		handleStaleMsg(d.ctx.trans, msg, regionEpoch, isVoteMsg && notExist)
+		return true, nil
+	}
+
+    func (d *peerMsgHandler) destroyPeer() 内部会持有meta的锁，外面必须释放
+
+    测试问题：
+    put k1 ok
+    can not get k1 in store 2
+    add node 2 ok
+    put k2 ok
+    get k2 ok
+    add node 3 ok
+    panic: [region 1] 3 meta corrupted id:1 region_epoch:<>  != id:1 region_epoch:<conf_ver:7 version:1 > peers:<id:1 store_id:1 > peers:<id:2 store_id:2 > peers:<id:3 store_id:3 > 
+
+    goroutine 264 [running]:
+    github.com/pingcap-incubator/tinykv/kv/raftstore.(*peerMsgHandler).checkSnapshot(0xc17cc05580, 0xc17cc8f500)
+        /mnt/f/Ubuntu2004/tinykv/kv/raftstore/peer_msg_handler.go:590 +0x514
+    github.com/pingcap-incubator/tinykv/kv/raftstore.(*peerMsgHandler).onRaftMsg(0xc17cc05580, 0xc17cc8f500)
+        /mnt/f/Ubuntu2004/tinykv/kv/raftstore/peer_msg_handler.go:424 +0x21d
+    github.com/pingcap-incubator/tinykv/kv/raftstore.(*peerMsgHandler).HandleMsg(0xc17cc05580, {0xc0935e3de0?, 0x1?, {0xb6aca0?, 0xc17cc8f500?}})
+        /mnt/f/Ubuntu2004/tinykv/kv/raftstore/peer_msg_handler.go:260 +0x85
+    github.com/pingcap-incubator/tinykv/kv/raftstore.(*raftWorker).run(0xc121d83ce0, 0xc000270c00, 0x0?)
+        /mnt/f/Ubuntu2004/tinykv/kv/raftstore/raft_worker.go:56 +0x605
+    created by github.com/pingcap-incubator/tinykv/kv/raftstore.(*Raftstore).startWorkers
+        /mnt/f/Ubuntu2004/tinykv/kv/raftstore/raftstore.go:282 +0x17b
+    FAIL    github.com/pingcap-incubator/tinykv/kv/test_raftstore   2.867s
+    FAIL
+
+    raft Ready结构体中要apply的entry是多个，可能前面的entry apply导致peer销毁，此时不能再apply后面的entry
+
+    测试问题：panic: requested entry at index is unavailable，重启之后，entry没有了？！
+    定位结果：apply gc log时，没有判断，直接更新了applyState.TruncatedState，导致重启后出错
+
+    request timeout
+    1.初始化RaftLog时，dummyTerm初始化出错
+        if err != nil {
+            raftLog.dummyTerm = dterm
+        }
+        导致dummyTerm始终为0，无法接受新的entry。比如Leader 1向 2发送了Index 为198， term为6的快照，
+        2接受之后，1对2的Match更新到了198，但是2重启之后dummyTerm为0，导致接受entry时判断失败，返回reject。
+        1收到reject后，也不会回退nextIndex，因为2的Match已经是198。这样导致2始终无法接受新的entry，导致超时。
+        
+    2.问题，add一个节点后，始终无法创建它。见error_timeout2.1。
+        根因分析：新建一个peer 7 后，还没有初始化就删除它。在destroy时，有这样的代码：
+        if isInitialized && meta.regionRanges.Delete(&regionItem{region: d.Region()}) == nil {
+		    panic(d.Tag + " meta corruption detected")
+	    }
+        因为isInitialized为false，导致meta.regionRanges.Delete(&regionItem{region: d.Region()})不会执行。
+        再同一个store上新建peer 8时，会判断是否有已有的peer与新建的8的[startKey, endKey)冲突。
+    for _, region := range meta.getOverlapRegions(&metapb.Region{
+		StartKey: msg.StartKey,
+		EndKey:   msg.EndKey,
+	}) {
+		log.Debugf("msg %+v is overlapped with exist region %+v", msg, region)
+		if util.IsFirstVoteMessage(msg.Message) {
+			meta.pendingVotes = append(meta.pendingVotes, msg)
+		}
+		return false, nil
+	}
+        导致8始终无法创建，最后timeout
+    3.问题：三个节点系统，删除Leader后，剩下两个节点选不出主，导致timeout。见error_timeout2.2
+        根因：与问题2相同，调换判断顺序即可
+
+    4.问题：新建一个节点后，反复向它发送快照，但是它不回复appendResponse。见error_timeout3.1
+        根因：a收到快照后，成功应用，但是返回的消息丢失，leader则再次发送快照文件。
+                接收快照后，快照文件直接链接为badgerdb的sst文件。badgerdb进行压缩后，文件就变了。
+                再次收到快照文件时，发现文件已经有了，但是size check时会出错。
+                只需将快照文件复制再链接进badgerdb即可。
+
+    5.split测试，少数据问题，例如
+    want:x 3 0 yx 3 1 yx 3 2 yx 3 3 yx 3 4 y
+    got: 
+    根因：apply snapshot时，误删了数据，包括ps.clearExtraData(newRegion)和 region worker
+    中apply snapshot时，snapCtx.cleanUpRange(regionId, startKey, endKey)
